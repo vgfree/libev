@@ -39,7 +39,7 @@
 
 #include <poll.h>
 
-inline_size
+static inline
 void
 pollidx_init (int *base, int count)
 {
@@ -127,7 +127,7 @@ poll_poll (EV_P_ ev_tstamp timeout)
       }
 }
 
-inline_size
+static inline
 int
 poll_init (EV_P_ int flags)
 {
@@ -141,7 +141,7 @@ poll_init (EV_P_ int flags)
   return EVBACKEND_POLL;
 }
 
-inline_size
+static inline
 void
 poll_destroy (EV_P)
 {

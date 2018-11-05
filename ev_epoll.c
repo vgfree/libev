@@ -235,7 +235,7 @@ epoll_poll (EV_P_ ev_tstamp timeout)
     }
 }
 
-inline_size
+static inline
 int
 epoll_init (EV_P_ int flags)
 {
@@ -261,7 +261,7 @@ epoll_init (EV_P_ int flags)
   return EVBACKEND_EPOLL;
 }
 
-inline_size
+static inline
 void
 epoll_destroy (EV_P)
 {
@@ -269,7 +269,7 @@ epoll_destroy (EV_P)
   array_free (epoll_eperm, EMPTY);
 }
 
-inline_size
+static inline
 void
 epoll_fork (EV_P)
 {

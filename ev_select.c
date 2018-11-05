@@ -271,7 +271,7 @@ select_poll (EV_P_ ev_tstamp timeout)
 #endif
 }
 
-inline_size
+static inline
 int
 select_init (EV_P_ int flags)
 {
@@ -301,7 +301,7 @@ select_init (EV_P_ int flags)
   return EVBACKEND_SELECT;
 }
 
-inline_size
+static inline
 void
 select_destroy (EV_P)
 {

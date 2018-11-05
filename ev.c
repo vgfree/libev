@@ -185,17 +185,6 @@
 # include "ev.h"
 #endif
 
-#if EV_NO_THREADS
-# undef EV_NO_SMP
-# define EV_NO_SMP 1
-# undef ECB_NO_THREADS
-# define ECB_NO_THREADS 1
-#endif
-#if EV_NO_SMP
-# undef EV_NO_SMP
-# define ECB_NO_SMP 1
-#endif
-
 #ifndef _WIN32
 # include <sys/time.h>
 # include <sys/wait.h>
@@ -208,7 +197,6 @@
 # ifndef EV_SELECT_IS_WINSOCKET
 #  define EV_SELECT_IS_WINSOCKET 1
 # endif
-# undef EV_AVOID_STDIO
 #endif
 
 /* OS X, in its infinite idiocy, actually HARDCODES
@@ -488,97 +476,10 @@ struct signalfd_siginfo
 #define EV_TV_SET(tv,t) do { tv.tv_sec = (long)t; tv.tv_usec = (long)((t - tv.tv_sec) * 1e6); } while (0)
 #define EV_TS_SET(ts,t) do { ts.tv_sec = (long)t; ts.tv_nsec = (long)((t - ts.tv_sec) * 1e9); } while (0)
 
-/* the following is ecb.h embedded into libev - use update_ev_c to update from an external copy */
-/* ECB.H BEGIN */
-/*
- * libecb - http://software.schmorp.de/pkg/libecb
- *
- * Copyright (©) 2009-2015 Marc Alexander Lehmann <libecb@schmorp.de>
- * Copyright (©) 2011 Emanuele Giaquinta
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modifica-
- * tion, are permitted provided that the following conditions are met:
- *
- *   1.  Redistributions of source code must retain the above copyright notice,
- *       this list of conditions and the following disclaimer.
- *
- *   2.  Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MER-
- * CHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO
- * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPE-
- * CIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
- * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTH-
- * ERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Alternatively, the contents of this file may be used under the terms of
- * the GNU General Public License ("GPL") version 2 or any later version,
- * in which case the provisions of the GPL are applicable instead of
- * the above. If you wish to allow the use of your version of this file
- * only under the terms of the GPL and not to allow others to use your
- * version of this file under the BSD license, indicate your decision
- * by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL. If you do not delete the
- * provisions above, a recipient may use your version of this file under
- * either the BSD or the GPL.
- */
-
-#ifndef ECB_H
-#define ECB_H
-
-/* 16 bits major, 16 bits minor */
-#define ECB_VERSION 0x00010005
-
-#ifdef _WIN32
-  typedef   signed char   int8_t;
-  typedef unsigned char  uint8_t;
-  typedef   signed short  int16_t;
-  typedef unsigned short uint16_t;
-  typedef   signed int    int32_t;
-  typedef unsigned int   uint32_t;
-  #if __GNUC__
-    typedef   signed long long int64_t;
-    typedef unsigned long long uint64_t;
-  #else /* _MSC_VER || __BORLANDC__ */
-    typedef   signed __int64   int64_t;
-    typedef unsigned __int64   uint64_t;
-  #endif
-  #ifdef _WIN64
-    #define ECB_PTRSIZE 8
-    typedef uint64_t uintptr_t;
-    typedef  int64_t  intptr_t;
-  #else
-    #define ECB_PTRSIZE 4
-    typedef uint32_t uintptr_t;
-    typedef  int32_t  intptr_t;
-  #endif
-#else
-  #include <inttypes.h>
-  #if (defined INTPTR_MAX ? INTPTR_MAX : ULONG_MAX) > 0xffffffffU
-    #define ECB_PTRSIZE 8
-  #else
-    #define ECB_PTRSIZE 4
-  #endif
-#endif
+#include <inttypes.h>
 
 #define ECB_GCC_AMD64 (__amd64 || __amd64__ || __x86_64 || __x86_64__)
 #define ECB_MSVC_AMD64 (_M_AMD64 || _M_X64)
-
-/* work around x32 idiocy by defining proper macros */
-#if ECB_GCC_AMD64 || ECB_MSVC_AMD64
-  #if _ILP32
-    #define ECB_AMD64_X32 1
-  #else
-    #define ECB_AMD64 1
-  #endif
-#endif
 
 /* many compilers define _GNUC_ to some versions but then only implement
  * what their idiot authors think are the "more important" extensions,
@@ -593,8 +494,6 @@ struct signalfd_siginfo
   #define ECB_GCC_VERSION(major,minor) (__GNUC__ > (major) || (__GNUC__ == (major) && __GNUC_MINOR__ >= (minor)))
 #endif
 
-#define ECB_CLANG_VERSION(major,minor) (__clang_major__ > (major) || (__clang_major__ == (major) && __clang_minor__ >= (minor)))
-
 #if __clang__ && defined __has_builtin
   #define ECB_CLANG_BUILTIN(x) __has_builtin (x)
 #else
@@ -607,42 +506,10 @@ struct signalfd_siginfo
   #define ECB_CLANG_EXTENSION(x) 0
 #endif
 
-#define ECB_CPP   (__cplusplus+0)
-#define ECB_CPP11 (__cplusplus >= 201103L)
-
-#if ECB_CPP
-  #define ECB_C            0
-  #define ECB_STDC_VERSION 0
-#else
-  #define ECB_C            1
-  #define ECB_STDC_VERSION __STDC_VERSION__
-#endif
-
-#define ECB_C99   (ECB_STDC_VERSION >= 199901L)
-#define ECB_C11   (ECB_STDC_VERSION >= 201112L)
-
-#if ECB_CPP
-  #define ECB_EXTERN_C extern "C"
-  #define ECB_EXTERN_C_BEG ECB_EXTERN_C {
-  #define ECB_EXTERN_C_END }
-#else
-  #define ECB_EXTERN_C extern
-  #define ECB_EXTERN_C_BEG
-  #define ECB_EXTERN_C_END
-#endif
 
 /*****************************************************************************/
 
-/* ECB_NO_THREADS - ecb is not used by multiple threads, ever */
-/* ECB_NO_SMP     - ecb might be used in multiple threads, but only on a single cpu */
-
-#if ECB_NO_THREADS
-  #define ECB_NO_SMP 1
-#endif
-
-#if ECB_NO_SMP
-  #define ECB_MEMORY_FENCE do { } while (0)
-#endif
+#define ECB_CPP   (__cplusplus+0)
 
 /* http://www-01.ibm.com/support/knowledgecenter/SSGH3R_13.1.0/com.ibm.xlcpp131.aix.doc/compiler_ref/compiler_builtins.html */
 #if __xlC__ && ECB_CPP
@@ -774,8 +641,6 @@ struct signalfd_siginfo
      * of your system.
      */
     #include <pthread.h>
-    #define ECB_NEEDS_PTHREADS 1
-    #define ECB_MEMORY_FENCE_NEEDS_PTHREADS 1
 
     static pthread_mutex_t ecb_mf_lock = PTHREAD_MUTEX_INITIALIZER;
     #define ECB_MEMORY_FENCE do { pthread_mutex_lock (&ecb_mf_lock); pthread_mutex_unlock (&ecb_mf_lock); } while (0)
@@ -790,774 +655,51 @@ struct signalfd_siginfo
   #define ECB_MEMORY_FENCE_RELEASE ECB_MEMORY_FENCE
 #endif
 
-/*****************************************************************************/
-
-#if ECB_CPP
-  #define ecb_inline static inline
-#elif ECB_GCC_VERSION(2,5)
-  #define ecb_inline static __inline__
-#elif ECB_C99
-  #define ecb_inline static inline
-#else
-  #define ecb_inline static
-#endif
-
-#if ECB_GCC_VERSION(3,3)
-  #define ecb_restrict __restrict__
-#elif ECB_C99
-  #define ecb_restrict restrict
-#else
-  #define ecb_restrict
-#endif
-
-typedef int ecb_bool;
-
-#define ECB_CONCAT_(a, b) a ## b
-#define ECB_CONCAT(a, b) ECB_CONCAT_(a, b)
-#define ECB_STRINGIFY_(a) # a
-#define ECB_STRINGIFY(a) ECB_STRINGIFY_(a)
-#define ECB_STRINGIFY_EXPR(expr) ((expr), ECB_STRINGIFY_ (expr))
-
-#define ecb_function_ ecb_inline
-
-#if ECB_GCC_VERSION(3,1) || ECB_CLANG_VERSION(2,8)
-  #define ecb_attribute(attrlist)        __attribute__ (attrlist)
-#else
-  #define ecb_attribute(attrlist)
-#endif
-
-#if ECB_GCC_VERSION(3,1) || ECB_CLANG_BUILTIN(__builtin_constant_p)
-  #define ecb_is_constant(expr)          __builtin_constant_p (expr)
-#else
-  /* possible C11 impl for integral types
-  typedef struct ecb_is_constant_struct ecb_is_constant_struct;
-  #define ecb_is_constant(expr)          _Generic ((1 ? (struct ecb_is_constant_struct *)0 : (void *)((expr) - (expr)), ecb_is_constant_struct *: 0, default: 1)) */
-
-  #define ecb_is_constant(expr)          0
-#endif
-
-#if ECB_GCC_VERSION(3,1) || ECB_CLANG_BUILTIN(__builtin_expect)
-  #define ecb_expect(expr,value)         __builtin_expect ((expr),(value))
-#else
-  #define ecb_expect(expr,value)         (expr)
-#endif
-
-#if ECB_GCC_VERSION(3,1) || ECB_CLANG_BUILTIN(__builtin_prefetch)
-  #define ecb_prefetch(addr,rw,locality) __builtin_prefetch (addr, rw, locality)
-#else
-  #define ecb_prefetch(addr,rw,locality)
-#endif
-
-/* no emulation for ecb_decltype */
-#if ECB_CPP11
-  // older implementations might have problems with decltype(x)::type, work around it
-  template<class T> struct ecb_decltype_t { typedef T type; };
-  #define ecb_decltype(x) ecb_decltype_t<decltype (x)>::type
-#elif ECB_GCC_VERSION(3,0) || ECB_CLANG_VERSION(2,8)
-  #define ecb_decltype(x) __typeof__ (x)
-#endif
-
-#if _MSC_VER >= 1300
-  #define ecb_deprecated __declspec (deprecated)
-#else
-  #define ecb_deprecated ecb_attribute ((__deprecated__))
-#endif
-
-#if _MSC_VER >= 1500
-  #define ecb_deprecated_message(msg) __declspec (deprecated (msg))
-#elif ECB_GCC_VERSION(4,5)
-  #define ecb_deprecated_message(msg) ecb_attribute ((__deprecated__ (msg))
-#else
-  #define ecb_deprecated_message(msg) ecb_deprecated
-#endif
-
-#if _MSC_VER >= 1400
-  #define ecb_noinline __declspec (noinline)
-#else
-  #define ecb_noinline ecb_attribute ((__noinline__))
-#endif
-
-#define ecb_unused     ecb_attribute ((__unused__))
-#define ecb_const      ecb_attribute ((__const__))
-#define ecb_pure       ecb_attribute ((__pure__))
-
-#if ECB_C11 || __IBMC_NORETURN
-  /* http://www-01.ibm.com/support/knowledgecenter/SSGH3R_13.1.0/com.ibm.xlcpp131.aix.doc/language_ref/noreturn.html */
-  #define ecb_noreturn   _Noreturn
-#elif ECB_CPP11
-  #define ecb_noreturn   [[noreturn]]
-#elif _MSC_VER >= 1200
-  /* http://msdn.microsoft.com/en-us/library/k6ktzx3s.aspx */
-  #define ecb_noreturn   __declspec (noreturn)
-#else
-  #define ecb_noreturn   ecb_attribute ((__noreturn__))
-#endif
-
-#if ECB_GCC_VERSION(4,3)
-  #define ecb_artificial ecb_attribute ((__artificial__))
-  #define ecb_hot        ecb_attribute ((__hot__))
-  #define ecb_cold       ecb_attribute ((__cold__))
-#else
-  #define ecb_artificial
-  #define ecb_hot
-  #define ecb_cold
-#endif
-
-/* put around conditional expressions if you are very sure that the  */
-/* expression is mostly true or mostly false. note that these return */
-/* booleans, not the expression.                                     */
-#define ecb_expect_false(expr) ecb_expect (!!(expr), 0)
-#define ecb_expect_true(expr)  ecb_expect (!!(expr), 1)
-/* for compatibility to the rest of the world */
-#define ecb_likely(expr)   ecb_expect_true  (expr)
-#define ecb_unlikely(expr) ecb_expect_false (expr)
-
-/* count trailing zero bits and count # of one bits */
-#if ECB_GCC_VERSION(3,4) \
-    || (ECB_CLANG_BUILTIN(__builtin_clz) && ECB_CLANG_BUILTIN(__builtin_clzll) \
-        && ECB_CLANG_BUILTIN(__builtin_ctz) && ECB_CLANG_BUILTIN(__builtin_ctzll) \
-        && ECB_CLANG_BUILTIN(__builtin_popcount))
-  /* we assume int == 32 bit, long == 32 or 64 bit and long long == 64 bit */
-  #define ecb_ld32(x)      (__builtin_clz      (x) ^ 31)
-  #define ecb_ld64(x)      (__builtin_clzll    (x) ^ 63)
-  #define ecb_ctz32(x)      __builtin_ctz      (x)
-  #define ecb_ctz64(x)      __builtin_ctzll    (x)
-  #define ecb_popcount32(x) __builtin_popcount (x)
-  /* no popcountll */
-#else
-  ecb_function_ ecb_const int ecb_ctz32 (uint32_t x);
-  ecb_function_ ecb_const int
-  ecb_ctz32 (uint32_t x)
-  {
-#if 1400 <= _MSC_VER && (_M_IX86 || _M_X64 || _M_IA64 || _M_ARM)
-    unsigned long r;
-    _BitScanForward (&r, x);
-    return (int)r;
-#else
-    int r = 0;
-
-    x &= ~x + 1; /* this isolates the lowest bit */
-
-#if ECB_branchless_on_i386
-    r += !!(x & 0xaaaaaaaa) << 0;
-    r += !!(x & 0xcccccccc) << 1;
-    r += !!(x & 0xf0f0f0f0) << 2;
-    r += !!(x & 0xff00ff00) << 3;
-    r += !!(x & 0xffff0000) << 4;
-#else
-    if (x & 0xaaaaaaaa) r +=  1;
-    if (x & 0xcccccccc) r +=  2;
-    if (x & 0xf0f0f0f0) r +=  4;
-    if (x & 0xff00ff00) r +=  8;
-    if (x & 0xffff0000) r += 16;
-#endif
-
-    return r;
-#endif
-  }
-
-  ecb_function_ ecb_const int ecb_ctz64 (uint64_t x);
-  ecb_function_ ecb_const int
-  ecb_ctz64 (uint64_t x)
-  {
-#if 1400 <= _MSC_VER && (_M_X64 || _M_IA64 || _M_ARM)
-    unsigned long r;
-    _BitScanForward64 (&r, x);
-    return (int)r;
-#else
-    int shift = x & 0xffffffff ? 0 : 32;
-    return ecb_ctz32 (x >> shift) + shift;
-#endif
-  }
-
-  ecb_function_ ecb_const int ecb_popcount32 (uint32_t x);
-  ecb_function_ ecb_const int
-  ecb_popcount32 (uint32_t x)
-  {
-    x -=  (x >> 1) & 0x55555555;
-    x  = ((x >> 2) & 0x33333333) + (x & 0x33333333);
-    x  = ((x >> 4) + x) & 0x0f0f0f0f;
-    x *= 0x01010101;
-
-    return x >> 24;
-  }
-
-  ecb_function_ ecb_const int ecb_ld32 (uint32_t x);
-  ecb_function_ ecb_const int ecb_ld32 (uint32_t x)
-  {
-#if 1400 <= _MSC_VER && (_M_IX86 || _M_X64 || _M_IA64 || _M_ARM)
-    unsigned long r;
-    _BitScanReverse (&r, x);
-    return (int)r;
-#else
-    int r = 0;
-
-    if (x >> 16) { x >>= 16; r += 16; }
-    if (x >>  8) { x >>=  8; r +=  8; }
-    if (x >>  4) { x >>=  4; r +=  4; }
-    if (x >>  2) { x >>=  2; r +=  2; }
-    if (x >>  1) {           r +=  1; }
-
-    return r;
-#endif
-  }
-
-  ecb_function_ ecb_const int ecb_ld64 (uint64_t x);
-  ecb_function_ ecb_const int ecb_ld64 (uint64_t x)
-  {
-#if 1400 <= _MSC_VER && (_M_X64 || _M_IA64 || _M_ARM)
-    unsigned long r;
-    _BitScanReverse64 (&r, x);
-    return (int)r;
-#else
-    int r = 0;
-
-    if (x >> 32) { x >>= 32; r += 32; }
-
-    return r + ecb_ld32 (x);
-#endif
-  }
-#endif
-
-ecb_function_ ecb_const ecb_bool ecb_is_pot32 (uint32_t x);
-ecb_function_ ecb_const ecb_bool ecb_is_pot32 (uint32_t x) { return !(x & (x - 1)); }
-ecb_function_ ecb_const ecb_bool ecb_is_pot64 (uint64_t x);
-ecb_function_ ecb_const ecb_bool ecb_is_pot64 (uint64_t x) { return !(x & (x - 1)); }
-
-ecb_function_ ecb_const uint8_t  ecb_bitrev8  (uint8_t  x);
-ecb_function_ ecb_const uint8_t  ecb_bitrev8  (uint8_t  x)
-{
-  return (  (x * 0x0802U & 0x22110U)
-          | (x * 0x8020U & 0x88440U)) * 0x10101U >> 16;
-}
-
-ecb_function_ ecb_const uint16_t ecb_bitrev16 (uint16_t x);
-ecb_function_ ecb_const uint16_t ecb_bitrev16 (uint16_t x)
-{
-  x = ((x >>  1) &     0x5555) | ((x &     0x5555) <<  1);
-  x = ((x >>  2) &     0x3333) | ((x &     0x3333) <<  2);
-  x = ((x >>  4) &     0x0f0f) | ((x &     0x0f0f) <<  4);
-  x = ( x >>  8              ) | ( x               <<  8);
-
-  return x;
-}
-
-ecb_function_ ecb_const uint32_t ecb_bitrev32 (uint32_t x);
-ecb_function_ ecb_const uint32_t ecb_bitrev32 (uint32_t x)
-{
-  x = ((x >>  1) & 0x55555555) | ((x & 0x55555555) <<  1);
-  x = ((x >>  2) & 0x33333333) | ((x & 0x33333333) <<  2);
-  x = ((x >>  4) & 0x0f0f0f0f) | ((x & 0x0f0f0f0f) <<  4);
-  x = ((x >>  8) & 0x00ff00ff) | ((x & 0x00ff00ff) <<  8);
-  x = ( x >> 16              ) | ( x               << 16);
-
-  return x;
-}
-
-/* popcount64 is only available on 64 bit cpus as gcc builtin */
-/* so for this version we are lazy */
-ecb_function_ ecb_const int ecb_popcount64 (uint64_t x);
-ecb_function_ ecb_const int
-ecb_popcount64 (uint64_t x)
-{
-  return ecb_popcount32 (x) + ecb_popcount32 (x >> 32);
-}
-
-ecb_inline ecb_const uint8_t  ecb_rotl8  (uint8_t  x, unsigned int count);
-ecb_inline ecb_const uint8_t  ecb_rotr8  (uint8_t  x, unsigned int count);
-ecb_inline ecb_const uint16_t ecb_rotl16 (uint16_t x, unsigned int count);
-ecb_inline ecb_const uint16_t ecb_rotr16 (uint16_t x, unsigned int count);
-ecb_inline ecb_const uint32_t ecb_rotl32 (uint32_t x, unsigned int count);
-ecb_inline ecb_const uint32_t ecb_rotr32 (uint32_t x, unsigned int count);
-ecb_inline ecb_const uint64_t ecb_rotl64 (uint64_t x, unsigned int count);
-ecb_inline ecb_const uint64_t ecb_rotr64 (uint64_t x, unsigned int count);
-
-ecb_inline ecb_const uint8_t  ecb_rotl8  (uint8_t  x, unsigned int count) { return (x >> ( 8 - count)) | (x << count); }
-ecb_inline ecb_const uint8_t  ecb_rotr8  (uint8_t  x, unsigned int count) { return (x << ( 8 - count)) | (x >> count); }
-ecb_inline ecb_const uint16_t ecb_rotl16 (uint16_t x, unsigned int count) { return (x >> (16 - count)) | (x << count); }
-ecb_inline ecb_const uint16_t ecb_rotr16 (uint16_t x, unsigned int count) { return (x << (16 - count)) | (x >> count); }
-ecb_inline ecb_const uint32_t ecb_rotl32 (uint32_t x, unsigned int count) { return (x >> (32 - count)) | (x << count); }
-ecb_inline ecb_const uint32_t ecb_rotr32 (uint32_t x, unsigned int count) { return (x << (32 - count)) | (x >> count); }
-ecb_inline ecb_const uint64_t ecb_rotl64 (uint64_t x, unsigned int count) { return (x >> (64 - count)) | (x << count); }
-ecb_inline ecb_const uint64_t ecb_rotr64 (uint64_t x, unsigned int count) { return (x << (64 - count)) | (x >> count); }
-
-#if ECB_GCC_VERSION(4,3) || (ECB_CLANG_BUILTIN(__builtin_bswap32) && ECB_CLANG_BUILTIN(__builtin_bswap64))
-  #if ECB_GCC_VERSION(4,8) || ECB_CLANG_BUILTIN(__builtin_bswap16)
-  #define ecb_bswap16(x)  __builtin_bswap16 (x)
-  #else
-  #define ecb_bswap16(x) (__builtin_bswap32 (x) >> 16)
-  #endif
-  #define ecb_bswap32(x)  __builtin_bswap32 (x)
-  #define ecb_bswap64(x)  __builtin_bswap64 (x)
-#elif _MSC_VER
-  #include <stdlib.h>
-  #define ecb_bswap16(x) ((uint16_t)_byteswap_ushort ((uint16_t)(x)))
-  #define ecb_bswap32(x) ((uint32_t)_byteswap_ulong  ((uint32_t)(x)))
-  #define ecb_bswap64(x) ((uint64_t)_byteswap_uint64 ((uint64_t)(x)))
-#else
-  ecb_function_ ecb_const uint16_t ecb_bswap16 (uint16_t x);
-  ecb_function_ ecb_const uint16_t
-  ecb_bswap16 (uint16_t x)
-  {
-    return ecb_rotl16 (x, 8);
-  }
-
-  ecb_function_ ecb_const uint32_t ecb_bswap32 (uint32_t x);
-  ecb_function_ ecb_const uint32_t
-  ecb_bswap32 (uint32_t x)
-  {
-    return (((uint32_t)ecb_bswap16 (x)) << 16) | ecb_bswap16 (x >> 16);
-  }
-
-  ecb_function_ ecb_const uint64_t ecb_bswap64 (uint64_t x);
-  ecb_function_ ecb_const uint64_t
-  ecb_bswap64 (uint64_t x)
-  {
-    return (((uint64_t)ecb_bswap32 (x)) << 32) | ecb_bswap32 (x >> 32);
-  }
-#endif
-
-#if ECB_GCC_VERSION(4,5) || ECB_CLANG_BUILTIN(__builtin_unreachable)
-  #define ecb_unreachable() __builtin_unreachable ()
-#else
-  /* this seems to work fine, but gcc always emits a warning for it :/ */
-  ecb_inline ecb_noreturn void ecb_unreachable (void);
-  ecb_inline ecb_noreturn void ecb_unreachable (void) { }
-#endif
-
-/* try to tell the compiler that some condition is definitely true */
-#define ecb_assume(cond) if (!(cond)) ecb_unreachable (); else 0
-
-ecb_inline ecb_const uint32_t ecb_byteorder_helper (void);
-ecb_inline ecb_const uint32_t
-ecb_byteorder_helper (void)
-{
-  /* the union code still generates code under pressure in gcc, */
-  /* but less than using pointers, and always seems to */
-  /* successfully return a constant. */
-  /* the reason why we have this horrible preprocessor mess */
-  /* is to avoid it in all cases, at least on common architectures */
-  /* or when using a recent enough gcc version (>= 4.6) */
-#if (defined __BYTE_ORDER__ && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__) \
-    || ((__i386 || __i386__ || _M_IX86 || ECB_GCC_AMD64 || ECB_MSVC_AMD64) && !__VOS__)
-  #define ECB_LITTLE_ENDIAN 1
-  return 0x44332211;
-#elif (defined __BYTE_ORDER__ && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__) \
-      || ((__AARCH64EB__ || __MIPSEB__ || __ARMEB__) && !__VOS__)
-  #define ECB_BIG_ENDIAN 1
-  return 0x11223344;
-#else
-  union
-  {
-    uint8_t c[4];
-    uint32_t u;
-  } u = { 0x11, 0x22, 0x33, 0x44 };
-  return u.u;
-#endif
-}
-
-ecb_inline ecb_const ecb_bool ecb_big_endian    (void);
-ecb_inline ecb_const ecb_bool ecb_big_endian    (void) { return ecb_byteorder_helper () == 0x11223344; }
-ecb_inline ecb_const ecb_bool ecb_little_endian (void);
-ecb_inline ecb_const ecb_bool ecb_little_endian (void) { return ecb_byteorder_helper () == 0x44332211; }
-
-#if ECB_GCC_VERSION(3,0) || ECB_C99
-  #define ecb_mod(m,n) ((m) % (n) + ((m) % (n) < 0 ? (n) : 0))
-#else
-  #define ecb_mod(m,n) ((m) < 0 ? ((n) - 1 - ((-1 - (m)) % (n))) : ((m) % (n)))
-#endif
-
-#if ECB_CPP
-  template<typename T>
-  static inline T ecb_div_rd (T val, T div)
-  {
-    return val < 0 ? - ((-val + div - 1) / div) : (val          ) / div;
-  }
-  template<typename T>
-  static inline T ecb_div_ru (T val, T div)
-  {
-    return val < 0 ? - ((-val          ) / div) : (val + div - 1) / div;
-  }
-#else
-  #define ecb_div_rd(val,div) ((val) < 0 ? - ((-(val) + (div) - 1) / (div)) : ((val)            ) / (div))
-  #define ecb_div_ru(val,div) ((val) < 0 ? - ((-(val)            ) / (div)) : ((val) + (div) - 1) / (div))
-#endif
-
-#if ecb_cplusplus_does_not_suck
-  /* does not work for local types (http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2657.htm) */
-  template<typename T, int N>
-  static inline int ecb_array_length (const T (&arr)[N])
-  {
-    return N;
-  }
-#else
-  #define ecb_array_length(name) (sizeof (name) / sizeof (name [0]))
-#endif
-
-ecb_function_ ecb_const uint32_t ecb_binary16_to_binary32 (uint32_t x);
-ecb_function_ ecb_const uint32_t
-ecb_binary16_to_binary32 (uint32_t x)
-{
-  unsigned int s = (x & 0x8000) << (31 - 15);
-  int          e = (x >> 10) & 0x001f;
-  unsigned int m =  x        & 0x03ff;
-
-  if (ecb_expect_false (e == 31))
-    /* infinity or NaN */
-    e = 255 - (127 - 15);
-  else if (ecb_expect_false (!e))
-    {
-      if (ecb_expect_true (!m))
-        /* zero, handled by code below by forcing e to 0 */
-        e = 0 - (127 - 15);
-      else
-        {
-          /* subnormal, renormalise */
-          unsigned int s = 10 - ecb_ld32 (m);
-
-          m = (m << s) & 0x3ff; /* mask implicit bit */
-          e -= s - 1;
-        }
-    }
-
-  /* e and m now are normalised, or zero, (or inf or nan) */
-  e += 127 - 15;
-
-  return s | (e << 23) | (m << (23 - 10));
-}
-
-ecb_function_ ecb_const uint16_t ecb_binary32_to_binary16 (uint32_t x);
-ecb_function_ ecb_const uint16_t
-ecb_binary32_to_binary16 (uint32_t x)
-{
-  unsigned int s =  (x >> 16) & 0x00008000; /* sign bit, the easy part */
-  unsigned int e = ((x >> 23) & 0x000000ff) - (127 - 15); /* the desired exponent */
-  unsigned int m =   x        & 0x007fffff;
-
-  x &= 0x7fffffff;
-
-  /* if it's within range of binary16 normals, use fast path */
-  if (ecb_expect_true (0x38800000 <= x && x <= 0x477fefff))
-    {
-      /* mantissa round-to-even */
-      m += 0x00000fff + ((m >> (23 - 10)) & 1);
-
-      /* handle overflow */
-      if (ecb_expect_false (m >= 0x00800000))
-        {
-          m >>= 1;
-          e +=  1;
-        }
-
-      return s | (e << 10) | (m >> (23 - 10));
-    }
-
-  /* handle large numbers and infinity */
-  if (ecb_expect_true (0x477fefff < x && x <= 0x7f800000))
-    return s | 0x7c00;
-
-  /* handle zero, subnormals and small numbers */
-  if (ecb_expect_true (x < 0x38800000))
-    {
-      /* zero */
-      if (ecb_expect_true (!x))
-        return s;
-
-      /* handle subnormals */
-
-      /* too small, will be zero */
-      if (e < (14 - 24)) /* might not be sharp, but is good enough */
-        return s;
-
-      m |= 0x00800000; /* make implicit bit explicit */
-
-      /* very tricky - we need to round to the nearest e (+10) bit value */
-      {
-        unsigned int bits = 14 - e;
-        unsigned int half = (1 << (bits - 1)) - 1;
-        unsigned int even = (m >> bits) & 1;
-
-        /* if this overflows, we will end up with a normalised number */
-        m = (m + half + even) >> bits;
-      }
-
-      return s | m;
-    }
-
-  /* handle NaNs, preserve leftmost nan bits, but make sure we don't turn them into infinities */
-  m >>= 13;
-
-  return s | 0x7c00 | m | !m;
-}
-
-/*******************************************************************************/
-/* floating point stuff, can be disabled by defining ECB_NO_LIBM */
-
-/* basically, everything uses "ieee pure-endian" floating point numbers */
-/* the only noteworthy exception is ancient armle, which uses order 43218765 */
-#if 0 \
-    || __i386 || __i386__ \
-    || ECB_GCC_AMD64 \
-    || __powerpc__ || __ppc__ || __powerpc64__ || __ppc64__ \
-    || defined __s390__ || defined __s390x__ \
-    || defined __mips__ \
-    || defined __alpha__ \
-    || defined __hppa__ \
-    || defined __ia64__ \
-    || defined __m68k__ \
-    || defined __m88k__ \
-    || defined __sh__ \
-    || defined _M_IX86 || defined ECB_MSVC_AMD64 || defined _M_IA64 \
-    || (defined __arm__ && (defined __ARM_EABI__ || defined __EABI__ || defined __VFP_FP__ || defined _WIN32_WCE || defined __ANDROID__)) \
-    || defined __aarch64__
-  #define ECB_STDFP 1
-  #include <string.h> /* for memcpy */
-#else
-  #define ECB_STDFP 0
-#endif
-
-#ifndef ECB_NO_LIBM
-
-  #include <math.h> /* for frexp*, ldexp*, INFINITY, NAN */
-
-  /* only the oldest of old doesn't have this one. solaris. */
-  #ifdef INFINITY
-    #define ECB_INFINITY INFINITY
-  #else
-    #define ECB_INFINITY HUGE_VAL
-  #endif
-
-  #ifdef NAN
-    #define ECB_NAN NAN
-  #else
-    #define ECB_NAN ECB_INFINITY
-  #endif
-
-  #if ECB_C99 || _XOPEN_VERSION >= 600 || _POSIX_VERSION >= 200112L
-    #define ecb_ldexpf(x,e) ldexpf ((x), (e))
-    #define ecb_frexpf(x,e) frexpf ((x), (e))
-  #else
-    #define ecb_ldexpf(x,e) (float) ldexp ((double) (x), (e))
-    #define ecb_frexpf(x,e) (float) frexp ((double) (x), (e))
-  #endif
-
-  /* convert a float to ieee single/binary32 */
-  ecb_function_ ecb_const uint32_t ecb_float_to_binary32 (float x);
-  ecb_function_ ecb_const uint32_t
-  ecb_float_to_binary32 (float x)
-  {
-    uint32_t r;
-
-    #if ECB_STDFP
-      memcpy (&r, &x, 4);
-    #else
-      /* slow emulation, works for anything but -0 */
-      uint32_t m;
-      int e;
-
-      if (x == 0e0f                    ) return 0x00000000U;
-      if (x > +3.40282346638528860e+38f) return 0x7f800000U;
-      if (x < -3.40282346638528860e+38f) return 0xff800000U;
-      if (x != x                       ) return 0x7fbfffffU;
-
-      m = ecb_frexpf (x, &e) * 0x1000000U;
-
-      r = m & 0x80000000U;
-
-      if (r)
-        m = -m;
-
-      if (e <= -126)
-        {
-          m &= 0xffffffU;
-          m >>= (-125 - e);
-          e = -126;
-        }
-
-      r |= (e + 126) << 23;
-      r |= m & 0x7fffffU;
-    #endif
-
-    return r;
-  }
-
-  /* converts an ieee single/binary32 to a float */
-  ecb_function_ ecb_const float ecb_binary32_to_float (uint32_t x);
-  ecb_function_ ecb_const float
-  ecb_binary32_to_float (uint32_t x)
-  {
-    float r;
-
-    #if ECB_STDFP
-      memcpy (&r, &x, 4);
-    #else
-      /* emulation, only works for normals and subnormals and +0 */
-      int neg = x >> 31;
-      int e = (x >> 23) & 0xffU;
-
-      x &= 0x7fffffU;
-
-      if (e)
-        x |= 0x800000U;
-      else
-        e = 1;
-
-      /* we distrust ldexpf a bit and do the 2**-24 scaling by an extra multiply */
-      r = ecb_ldexpf (x * (0.5f / 0x800000U), e - 126);
-
-      r = neg ? -r : r;
-    #endif
-
-    return r;
-  }
-
-  /* convert a double to ieee double/binary64 */
-  ecb_function_ ecb_const uint64_t ecb_double_to_binary64 (double x);
-  ecb_function_ ecb_const uint64_t
-  ecb_double_to_binary64 (double x)
-  {
-    uint64_t r;
-
-    #if ECB_STDFP
-      memcpy (&r, &x, 8);
-    #else
-      /* slow emulation, works for anything but -0 */
-      uint64_t m;
-      int e;
-
-      if (x == 0e0                     ) return 0x0000000000000000U;
-      if (x > +1.79769313486231470e+308) return 0x7ff0000000000000U;
-      if (x < -1.79769313486231470e+308) return 0xfff0000000000000U;
-      if (x != x                       ) return 0X7ff7ffffffffffffU;
-
-      m = frexp (x, &e) * 0x20000000000000U;
-
-      r = m & 0x8000000000000000;;
-
-      if (r)
-        m = -m;
-
-      if (e <= -1022)
-        {
-          m &= 0x1fffffffffffffU;
-          m >>= (-1021 - e);
-          e = -1022;
-        }
-
-      r |= ((uint64_t)(e + 1022)) << 52;
-      r |= m & 0xfffffffffffffU;
-    #endif
-
-    return r;
-  }
-
-  /* converts an ieee double/binary64 to a double */
-  ecb_function_ ecb_const double ecb_binary64_to_double (uint64_t x);
-  ecb_function_ ecb_const double
-  ecb_binary64_to_double (uint64_t x)
-  {
-    double r;
-
-    #if ECB_STDFP
-      memcpy (&r, &x, 8);
-    #else
-      /* emulation, only works for normals and subnormals and +0 */
-      int neg = x >> 63;
-      int e = (x >> 52) & 0x7ffU;
-
-      x &= 0xfffffffffffffU;
-
-      if (e)
-        x |= 0x10000000000000U;
-      else
-        e = 1;
-
-      /* we distrust ldexp a bit and do the 2**-53 scaling by an extra multiply */
-      r = ldexp (x * (0.5 / 0x10000000000000U), e - 1022);
-
-      r = neg ? -r : r;
-    #endif
-
-    return r;
-  }
-
-  /* convert a float to ieee half/binary16 */
-  ecb_function_ ecb_const uint16_t ecb_float_to_binary16 (float x);
-  ecb_function_ ecb_const uint16_t
-  ecb_float_to_binary16 (float x)
-  {
-    return ecb_binary32_to_binary16 (ecb_float_to_binary32 (x));
-  }
-
-  /* convert an ieee half/binary16 to float */
-  ecb_function_ ecb_const float ecb_binary16_to_float (uint16_t x);
-  ecb_function_ ecb_const float
-  ecb_binary16_to_float (uint16_t x)
-  {
-    return ecb_binary32_to_float (ecb_binary16_to_binary32 (x));
-  }
-
-#endif
-
-#endif
-
-/* ECB.H END */
-
-#if ECB_MEMORY_FENCE_NEEDS_PTHREADS
-/* if your architecture doesn't need memory fences, e.g. because it is
- * single-cpu/core, or if you use libev in a project that doesn't use libev
- * from multiple threads, then you can define ECB_AVOID_PTHREADS when compiling
- * libev, in which cases the memory fences become nops.
- * alternatively, you can remove this #error and link against libpthread,
- * which will then provide the memory fences.
- */
-# error "memory fences not defined for your architecture, please report"
-#endif
-
 #ifndef ECB_MEMORY_FENCE
 # define ECB_MEMORY_FENCE do { } while (0)
 # define ECB_MEMORY_FENCE_ACQUIRE ECB_MEMORY_FENCE
 # define ECB_MEMORY_FENCE_RELEASE ECB_MEMORY_FENCE
 #endif
+/*****************************************************************************/
 
-#define expect_false(cond) ecb_expect_false (cond)
-#define expect_true(cond)  ecb_expect_true  (cond)
-#define noinline           ecb_noinline
-
-#define inline_size        ecb_inline
-
-#if EV_FEATURE_CODE
-# define inline_speed      ecb_inline
+#if ECB_GCC_VERSION(3,1) || ECB_CLANG_BUILTIN(__builtin_expect)
+  #define _expect(expr,value)         __builtin_expect ((expr),(value))
 #else
-# define inline_speed      noinline static
+  #define _expect(expr,value)         (expr)
 #endif
+
+#define expect_false(expr) _expect (!!(expr), 0)
+#define expect_true(expr)  _expect (!!(expr), 1)
+
+
+
+
+
+
 
 #define NUMPRI (EV_MAXPRI - EV_MINPRI + 1)
 
 #if EV_MINPRI == EV_MAXPRI
-# define ABSPRI(w) (((W)w), 0)
+# define ABSPRI(w) (((ev_watcher *)w), 0)
 #else
-# define ABSPRI(w) (((W)w)->priority - EV_MINPRI)
+# define ABSPRI(w) (((ev_watcher *)w)->priority - EV_MINPRI)
 #endif
 
 #define EMPTY       /* required for microsofts broken pseudo-c compiler */
 #define EMPTY2(a,b) /* used to suppress some warnings */
 
-typedef ev_watcher *W;
-typedef ev_watcher_list *WL;
-typedef ev_watcher_time *WT;
 
-#define ev_active(w) ((W)(w))->active
-#define ev_at(w) ((WT)(w))->at
+#define ev_active(w) ((ev_watcher *)(w))->active
+#define ev_at(w) ((ev_watcher_time *)(w))->at
 
 #if EV_USE_REALTIME
 /* sig_atomic_t is used to avoid per-thread variables or locking but still */
 /* giving it a reasonably high chance of working on typical architectures */
-static EV_ATOMIC_T have_realtime; /* did clock_gettime (CLOCK_REALTIME) work? */
+static EV_ATOMIC_T g_have_realtime; /* did clock_gettime (CLOCK_REALTIME) work? */
 #endif
 
 #if EV_USE_MONOTONIC
-static EV_ATOMIC_T have_monotonic; /* did clock_gettime (CLOCK_MONOTONIC) work? */
+static EV_ATOMIC_T g_have_monotonic; /* did clock_gettime (CLOCK_MONOTONIC) work? */
 #endif
 
 #ifndef EV_FD_TO_WIN32_HANDLE
@@ -1586,7 +728,7 @@ static EV_ATOMIC_T have_monotonic; /* did clock_gettime (CLOCK_MONOTONIC) work? 
 #include <float.h>
 
 /* a floor() replacement function, should be independent of ev_tstamp type */
-noinline
+
 static ev_tstamp
 ev_floor (ev_tstamp v)
 {
@@ -1629,9 +771,8 @@ ev_floor (ev_tstamp v)
 # include <sys/utsname.h>
 #endif
 
-noinline ecb_cold
-static unsigned int
-ev_linux_version (void)
+ 
+static unsigned int ev_linux_version (void)
 {
 #ifdef __linux
   unsigned int v = 0;
@@ -1668,27 +809,17 @@ ev_linux_version (void)
 
 /*****************************************************************************/
 
-#if EV_AVOID_STDIO
-noinline ecb_cold
-static void
-ev_printerr (const char *msg)
-{
-  write (STDERR_FILENO, msg, strlen (msg));
-}
-#endif
 
 static void (*syserr_cb)(const char *msg) EV_THROW;
 
-ecb_cold
-void
-ev_set_syserr_cb (void (*cb)(const char *msg) EV_THROW) EV_THROW
+
+void ev_set_syserr_cb (void (*cb)(const char *msg) EV_THROW) EV_THROW
 {
   syserr_cb = cb;
 }
 
-noinline ecb_cold
-static void
-ev_syserr (const char *msg)
+ 
+static void ev_syserr (const char *msg)
 {
   if (!msg)
     msg = "(libev) system error";
@@ -1697,20 +828,12 @@ ev_syserr (const char *msg)
     syserr_cb (msg);
   else
     {
-#if EV_AVOID_STDIO
-      ev_printerr (msg);
-      ev_printerr (": ");
-      ev_printerr (strerror (errno));
-      ev_printerr ("\n");
-#else
       perror (msg);
-#endif
       abort ();
     }
 }
 
-static void *
-ev_realloc_emul (void *ptr, long size) EV_THROW
+static void *ev_realloc_emul (void *ptr, long size) EV_THROW
 {
   /* some systems, notably openbsd and darwin, fail to properly
    * implement realloc (x, 0) (as required by both ansi c-89 and
@@ -1728,25 +851,21 @@ ev_realloc_emul (void *ptr, long size) EV_THROW
 
 static void *(*alloc)(void *ptr, long size) EV_THROW = ev_realloc_emul;
 
-ecb_cold
+
 void
 ev_set_allocator (void *(*cb)(void *ptr, long size) EV_THROW) EV_THROW
 {
   alloc = cb;
 }
 
-inline_speed void *
+static inline void *
 ev_realloc (void *ptr, long size)
 {
   ptr = alloc (ptr, size);
 
   if (!ptr && size)
     {
-#if EV_AVOID_STDIO
-      ev_printerr ("(libev) memory allocation failed, aborting.\n");
-#else
       fprintf (stderr, "(libev) cannot allocate %ld bytes, aborting.", size);
-#endif
       abort ();
     }
 
@@ -1764,7 +883,7 @@ ev_realloc (void *ptr, long size)
 /* file descriptor info structure */
 typedef struct
 {
-  WL head;
+  ev_watcher_list *head;
   unsigned char events; /* the events watched for */
   unsigned char reify;  /* flag set when this ANFD needs reification (EV_ANFD_REIFY, EV__IOFDSET) */
   unsigned char emask;  /* the epoll backend stores the actual kernel mask in here */
@@ -1783,7 +902,7 @@ typedef struct
 /* stores the pending event set for a given watcher */
 typedef struct
 {
-  W w;
+  ev_watcher *w;
   int events; /* the pending event set for the given watcher */
 } ANPENDING;
 
@@ -1791,7 +910,7 @@ typedef struct
 /* hash table entry per inotify-id */
 typedef struct
 {
-  WL head;
+  ev_watcher_list *head;
 } ANFS;
 #endif
 
@@ -1800,7 +919,7 @@ typedef struct
   /* a heap element */
   typedef struct {
     ev_tstamp at;
-    WT w;
+    ev_watcher_time *w;
   } ANHE;
 
   #define ANHE_w(he)        (he).w     /* access watcher, read-write */
@@ -1808,7 +927,7 @@ typedef struct
   #define ANHE_at_cache(he) (he).at = (he).w->at /* update at from watcher */
 #else
   /* a heap element */
-  typedef WT ANHE;
+  typedef ev_watcher_time *ANHE;
 
   #define ANHE_w(he)        (he)
   #define ANHE_at(he)       (he)->at
@@ -1860,7 +979,7 @@ ev_tstamp
 ev_time (void) EV_THROW
 {
 #if EV_USE_REALTIME
-  if (expect_true (have_realtime))
+  if (expect_true (g_have_realtime))
     {
       struct timespec ts;
       clock_gettime (CLOCK_REALTIME, &ts);
@@ -1874,11 +993,11 @@ ev_time (void) EV_THROW
 }
 #endif
 
-inline_size ev_tstamp
+static inline ev_tstamp
 get_clock (void)
 {
 #if EV_USE_MONOTONIC
-  if (expect_true (have_monotonic))
+  if (expect_true (g_have_monotonic))
     {
       struct timespec ts;
       clock_gettime (CLOCK_MONOTONIC, &ts);
@@ -1927,7 +1046,7 @@ ev_sleep (ev_tstamp delay) EV_THROW
 
 /* find a suitable new size for the given array, */
 /* hopefully by rounding to a nice-to-malloc size */
-inline_size int
+static inline int
 array_nextsize (int elem, int cur, int cnt)
 {
   int ncur = cur + 1;
@@ -1948,7 +1067,7 @@ array_nextsize (int elem, int cur, int cnt)
   return ncur;
 }
 
-noinline ecb_cold
+ 
 static void *
 array_realloc (int elem, void *base, int *cur, int cnt)
 {
@@ -1962,7 +1081,7 @@ array_realloc (int elem, void *base, int *cur, int cnt)
 #define array_needsize(type,base,cur,cnt,init)			\
   if (expect_false ((cnt) > (cur)))				\
     {								\
-      ecb_unused int ocur_ = (cur);				\
+      int ocur_ = (cur);				\
       (base) = (type *)array_realloc				\
          (sizeof (type), (base), &(cur), (cnt));		\
       init ((base) + (ocur_), (cur) - ocur_);			\
@@ -1984,17 +1103,17 @@ array_realloc (int elem, void *base, int *cur, int cnt)
 /*****************************************************************************/
 
 /* dummy callback for pending events */
-noinline
+
 static void
 pendingcb (EV_P_ ev_prepare *w, int revents)
 {
 }
 
-noinline
+
 void
 ev_feed_event (EV_P_ void *w, int revents) EV_THROW
 {
-  W w_ = (W)w;
+  ev_watcher *w_ = (ev_watcher *)w;
   int pri = ABSPRI (w_);
 
   if (expect_false (w_->pending))
@@ -2010,14 +1129,14 @@ ev_feed_event (EV_P_ void *w, int revents) EV_THROW
   pendingpri = NUMPRI - 1;
 }
 
-inline_speed void
-feed_reverse (EV_P_ W w)
+static inline void
+feed_reverse (EV_P_ ev_watcher *w)
 {
-  array_needsize (W, rfeeds, rfeedmax, rfeedcnt + 1, EMPTY2);
+  array_needsize (ev_watcher *, rfeeds, rfeedmax, rfeedcnt + 1, EMPTY2);
   rfeeds [rfeedcnt++] = w;
 }
 
-inline_size void
+static inline void
 feed_reverse_done (EV_P_ int revents)
 {
   do
@@ -2025,8 +1144,8 @@ feed_reverse_done (EV_P_ int revents)
   while (rfeedcnt);
 }
 
-inline_speed void
-queue_events (EV_P_ W *events, int eventcnt, int type)
+static inline void
+queue_events (EV_P_ ev_watcher **events, int eventcnt, int type)
 {
   int i;
 
@@ -2036,24 +1155,24 @@ queue_events (EV_P_ W *events, int eventcnt, int type)
 
 /*****************************************************************************/
 
-inline_speed void
+static inline void
 fd_event_nocheck (EV_P_ int fd, int revents)
 {
   ANFD *anfd = anfds + fd;
   ev_io *w;
 
-  for (w = (ev_io *)anfd->head; w; w = (ev_io *)((WL)w)->next)
+  for (w = (ev_io *)anfd->head; w; w = (ev_io *)((ev_watcher_list *)w)->next)
     {
       int ev = w->events & revents;
 
       if (ev)
-        ev_feed_event (EV_A_ (W)w, ev);
+        ev_feed_event (EV_A_ (ev_watcher *)w, ev);
     }
 }
 
 /* do not submit kernel events for fds that have reify set */
 /* because that means they changed while we were polling for new events */
-inline_speed void
+static inline void
 fd_event (EV_P_ int fd, int revents)
 {
   ANFD *anfd = anfds + fd;
@@ -2071,7 +1190,7 @@ ev_feed_fd_event (EV_P_ int fd, int revents) EV_THROW
 
 /* make sure the external fd watch events are in-sync */
 /* with the kernel/libev internal state */
-inline_size void
+static inline void
 fd_reify (EV_P)
 {
   int i;
@@ -2116,7 +1235,7 @@ fd_reify (EV_P)
         {
           anfd->events = 0;
 
-          for (w = (ev_io *)anfd->head; w; w = (ev_io *)((WL)w)->next)
+          for (w = (ev_io *)anfd->head; w; w = (ev_io *)((ev_watcher_list *)w)->next)
             anfd->events |= (unsigned char)w->events;
 
           if (o_events != anfd->events)
@@ -2131,7 +1250,7 @@ fd_reify (EV_P)
 }
 
 /* something about the given fd changed */
-inline_size
+static inline
 void
 fd_change (EV_P_ int fd, int flags)
 {
@@ -2147,7 +1266,7 @@ fd_change (EV_P_ int fd, int flags)
 }
 
 /* the given fd is invalid/unusable, so make sure it doesn't hurt us anymore */
-inline_speed ecb_cold void
+static inline  void
 fd_kill (EV_P_ int fd)
 {
   ev_io *w;
@@ -2155,12 +1274,12 @@ fd_kill (EV_P_ int fd)
   while ((w = (ev_io *)anfds [fd].head))
     {
       ev_io_stop (EV_A_ w);
-      ev_feed_event (EV_A_ (W)w, EV_ERROR | EV_READ | EV_WRITE);
+      ev_feed_event (EV_A_ (ev_watcher *)w, EV_ERROR | EV_READ | EV_WRITE);
     }
 }
 
 /* check whether the given fd is actually valid, for error recovery */
-inline_size ecb_cold int
+static inline  int
 fd_valid (int fd)
 {
 #ifdef _WIN32
@@ -2171,7 +1290,7 @@ fd_valid (int fd)
 }
 
 /* called on EBADF to verify fds */
-noinline ecb_cold
+ 
 static void
 fd_ebadf (EV_P)
 {
@@ -2184,7 +1303,7 @@ fd_ebadf (EV_P)
 }
 
 /* called on ENOMEM in select/poll to kill some fds and retry */
-noinline ecb_cold
+ 
 static void
 fd_enomem (EV_P)
 {
@@ -2199,7 +1318,7 @@ fd_enomem (EV_P)
 }
 
 /* usually called after fork if backend needs to re-arm all fds from scratch */
-noinline
+
 static void
 fd_rearm_all (EV_P)
 {
@@ -2216,7 +1335,7 @@ fd_rearm_all (EV_P)
 
 /* used to prepare libev internal fd's */
 /* this is not fork-safe */
-inline_speed void
+static inline void
 fd_intern (int fd)
 {
 #ifdef _WIN32
@@ -2250,7 +1369,7 @@ fd_intern (int fd)
 #define UPHEAP_DONE(p,k) ((p) == (k))
 
 /* away from the root */
-inline_speed void
+static inline void
 downheap (ANHE *heap, int N, int k)
 {
   ANHE he = heap [k];
@@ -2300,7 +1419,7 @@ downheap (ANHE *heap, int N, int k)
 #define UPHEAP_DONE(p,k) (!(p))
 
 /* away from the root */
-inline_speed void
+static inline void
 downheap (ANHE *heap, int N, int k)
 {
   ANHE he = heap [k];
@@ -2330,7 +1449,7 @@ downheap (ANHE *heap, int N, int k)
 #endif
 
 /* towards the root */
-inline_speed void
+static inline void
 upheap (ANHE *heap, int k)
 {
   ANHE he = heap [k];
@@ -2352,7 +1471,7 @@ upheap (ANHE *heap, int k)
 }
 
 /* move an element suitably so it is in a correct place */
-inline_size void
+static inline void
 adjustheap (ANHE *heap, int N, int k)
 {
   if (k > HEAP0 && ANHE_at (heap [k]) <= ANHE_at (heap [HPARENT (k)]))
@@ -2362,7 +1481,7 @@ adjustheap (ANHE *heap, int N, int k)
 }
 
 /* rebuild the heap: this function is used only once and executed rarely */
-inline_size void
+static inline void
 reheap (ANHE *heap, int N)
 {
   int i;
@@ -2382,7 +1501,7 @@ typedef struct
 #if EV_MULTIPLICITY
   EV_P;
 #endif
-  WL head;
+  ev_watcher_list *head;
 } ANSIG;
 
 static ANSIG signals [EV_NSIG - 1];
@@ -2391,7 +1510,7 @@ static ANSIG signals [EV_NSIG - 1];
 
 #if EV_SIGNAL_ENABLE || EV_ASYNC_ENABLE
 
-noinline ecb_cold
+ 
 static void
 evpipe_init (EV_P)
 {
@@ -2437,7 +1556,7 @@ evpipe_init (EV_P)
     }
 }
 
-inline_speed void
+static inline void
 evpipe_write (EV_P_ EV_ATOMIC_T *flag)
 {
   ECB_MEMORY_FENCE; /* push out the write before this function was called, acquire flag */
@@ -2580,11 +1699,11 @@ ev_sighandler (int signum)
   ev_feed_signal (signum);
 }
 
-noinline
+
 void
 ev_feed_signal_event (EV_P_ int signum) EV_THROW
 {
-  WL w;
+  ev_watcher_list *w;
 
   if (expect_false (signum <= 0 || signum >= EV_NSIG))
     return;
@@ -2603,7 +1722,7 @@ ev_feed_signal_event (EV_P_ int signum) EV_THROW
   ECB_MEMORY_FENCE_RELEASE;
 
   for (w = signals [signum].head; w; w = w->next)
-    ev_feed_event (EV_A_ (W)w, EV_SIGNAL);
+    ev_feed_event (EV_A_ (ev_watcher *)w, EV_SIGNAL);
 }
 
 #if EV_USE_SIGNALFD
@@ -2631,7 +1750,7 @@ sigfdcb (EV_P_ ev_io *iow, int revents)
 /*****************************************************************************/
 
 #if EV_CHILD_ENABLE
-static WL childs [EV_PID_HASHSIZE];
+static ev_watcher_list *childs [EV_PID_HASHSIZE];
 
 static ev_signal childev;
 
@@ -2640,13 +1759,13 @@ static ev_signal childev;
 #endif
 
 /* handle a single child status event */
-inline_speed void
+static inline void
 child_reap (EV_P_ int chain, int pid, int status)
 {
   ev_child *w;
   int traced = WIFSTOPPED (status) || WIFCONTINUED (status);
 
-  for (w = (ev_child *)childs [chain & ((EV_PID_HASHSIZE) - 1)]; w; w = (ev_child *)((WL)w)->next)
+  for (w = (ev_child *)childs [chain & ((EV_PID_HASHSIZE) - 1)]; w; w = (ev_child *)((ev_watcher_list *)w)->next)
     {
       if ((w->pid == pid || !w->pid)
           && (!traced || (w->flags & 1)))
@@ -2654,7 +1773,7 @@ child_reap (EV_P_ int chain, int pid, int status)
           ev_set_priority (w, EV_MAXPRI); /* need to do it *now*, this *must* be the same prio as the signal watcher itself */
           w->rpid    = pid;
           w->rstatus = status;
-          ev_feed_event (EV_A_ (W)w, EV_CHILD);
+          ev_feed_event (EV_A_ (ev_watcher *)w, EV_CHILD);
         }
     }
 }
@@ -2678,7 +1797,7 @@ childcb (EV_P_ ev_signal *sw, int revents)
 
   /* make sure we are called again until all children have been reaped */
   /* we need to do it this way so that the callback gets called before we continue */
-  ev_feed_event (EV_A_ (W)sw, EV_SIGNAL);
+  ev_feed_event (EV_A_ (ev_watcher *)sw, EV_SIGNAL);
 
   child_reap (EV_A_ pid, pid, status);
   if ((EV_PID_HASHSIZE) > 1)
@@ -2708,20 +1827,20 @@ childcb (EV_P_ ev_signal *sw, int revents)
 # include "ev_select.c"
 #endif
 
-ecb_cold int
+ int
 ev_version_major (void) EV_THROW
 {
   return EV_VERSION_MAJOR;
 }
 
-ecb_cold int
+ int
 ev_version_minor (void) EV_THROW
 {
   return EV_VERSION_MINOR;
 }
 
 /* return true if we are running with elevated privileges and should ignore env variables */
-inline_size ecb_cold int
+static inline  int
 enable_secure (void)
 {
 #ifdef _WIN32
@@ -2732,7 +1851,7 @@ enable_secure (void)
 #endif
 }
 
-ecb_cold
+
 unsigned int
 ev_supported_backends (void) EV_THROW
 {
@@ -2747,7 +1866,7 @@ ev_supported_backends (void) EV_THROW
   return flags;
 }
 
-ecb_cold
+
 unsigned int
 ev_recommended_backends (void) EV_THROW
 {
@@ -2770,7 +1889,7 @@ ev_recommended_backends (void) EV_THROW
   return flags;
 }
 
-ecb_cold
+
 unsigned int
 ev_embeddable_backends (void) EV_THROW
 {
@@ -2841,7 +1960,7 @@ ev_set_loop_release_cb (EV_P_ void (*release)(EV_P) EV_THROW, void (*acquire)(EV
 #endif
 
 /* initialise a loop structure, must be zero-initialised */
-noinline ecb_cold
+ 
 static void
 loop_init (EV_P_ unsigned int flags) EV_THROW
 {
@@ -2850,22 +1969,22 @@ loop_init (EV_P_ unsigned int flags) EV_THROW
       origflags = flags;
 
 #if EV_USE_REALTIME
-      if (!have_realtime)
+      if (!g_have_realtime)
         {
           struct timespec ts;
 
           if (!clock_gettime (CLOCK_REALTIME, &ts))
-            have_realtime = 1;
+            g_have_realtime = 1;
         }
 #endif
 
 #if EV_USE_MONOTONIC
-      if (!have_monotonic)
+      if (!g_have_monotonic)
         {
           struct timespec ts;
 
           if (!clock_gettime (CLOCK_MONOTONIC, &ts))
-            have_monotonic = 1;
+            g_have_monotonic = 1;
         }
 #endif
 
@@ -2939,7 +2058,7 @@ loop_init (EV_P_ unsigned int flags) EV_THROW
 }
 
 /* free up a loop structure */
-ecb_cold
+
 void
 ev_loop_destroy (EV_P)
 {
@@ -2955,7 +2074,7 @@ ev_loop_destroy (EV_P)
   /* queue cleanup watchers (and execute them) */
   if (expect_false (cleanupcnt))
     {
-      queue_events (EV_A_ (W *)cleanups, cleanupcnt, EV_CLEANUP);
+      queue_events (EV_A_ (ev_watcher **)cleanups, cleanupcnt, EV_CLEANUP);
       EV_INVOKE_PENDING;
     }
 #endif
@@ -3051,10 +2170,10 @@ ev_loop_destroy (EV_P)
 }
 
 #if EV_USE_INOTIFY
-inline_size void infy_fork (EV_P);
+static inline void infy_fork (EV_P);
 #endif
 
-inline_size void
+static inline void
 loop_fork (EV_P)
 {
 #if EV_USE_PORT
@@ -3092,7 +2211,7 @@ loop_fork (EV_P)
 
 #if EV_MULTIPLICITY
 
-ecb_cold
+
 struct ev_loop *
 ev_loop_new (unsigned int flags) EV_THROW
 {
@@ -3111,9 +2230,9 @@ ev_loop_new (unsigned int flags) EV_THROW
 #endif /* multiplicity */
 
 #if EV_VERIFY
-noinline ecb_cold
+ 
 static void
-verify_watcher (EV_P_ W w)
+verify_watcher (EV_P_ ev_watcher *w)
 {
   assert (("libev: watcher has invalid priority", ABSPRI (w) >= 0 && ABSPRI (w) < NUMPRI));
 
@@ -3121,7 +2240,7 @@ verify_watcher (EV_P_ W w)
     assert (("libev: pending watcher not on pending queue", pendings [ABSPRI (w)][w->pending - 1].w == w));
 }
 
-noinline ecb_cold
+ 
 static void
 verify_heap (EV_P_ ANHE *heap, int N)
 {
@@ -3133,13 +2252,13 @@ verify_heap (EV_P_ ANHE *heap, int N)
       assert (("libev: heap condition violated", i == HEAP0 || ANHE_at (heap [HPARENT (i)]) <= ANHE_at (heap [i])));
       assert (("libev: heap at cache mismatch", ANHE_at (heap [i]) == ev_at (ANHE_w (heap [i]))));
 
-      verify_watcher (EV_A_ (W)ANHE_w (heap [i]));
+      verify_watcher (EV_A_ (ev_watcher *)ANHE_w (heap [i]));
     }
 }
 
-noinline ecb_cold
+ 
 static void
-array_verify (EV_P_ W *ws, int cnt)
+array_verify (EV_P_ ev_watcher **ws, int cnt)
 {
   while (cnt--)
     {
@@ -3150,12 +2269,12 @@ array_verify (EV_P_ W *ws, int cnt)
 #endif
 
 #if EV_FEATURE_API
-void ecb_cold
+void 
 ev_verify (EV_P) EV_THROW
 {
 #if EV_VERIFY
   int i;
-  WL w, w2;
+  ev_watcher_list *w, *w2;
 
   assert (activecnt >= -1);
 
@@ -3170,7 +2289,7 @@ ev_verify (EV_P) EV_THROW
 
       for (w = w2 = anfds [i].head; w; w = w->next)
         {
-          verify_watcher (EV_A_ (W)w);
+          verify_watcher (EV_A_ (ev_watcher *)w);
 
           if (j++ & 1)
             {
@@ -3197,38 +2316,38 @@ ev_verify (EV_P) EV_THROW
 #if EV_IDLE_ENABLE
       assert (idleall >= 0);
       assert (idlemax [i] >= idlecnt [i]);
-      array_verify (EV_A_ (W *)idles [i], idlecnt [i]);
+      array_verify (EV_A_ (ev_watcher **)idles [i], idlecnt [i]);
 #endif
     }
 
 #if EV_FORK_ENABLE
   assert (forkmax >= forkcnt);
-  array_verify (EV_A_ (W *)forks, forkcnt);
+  array_verify (EV_A_ (ev_watcher **)forks, forkcnt);
 #endif
 
 #if EV_CLEANUP_ENABLE
   assert (cleanupmax >= cleanupcnt);
-  array_verify (EV_A_ (W *)cleanups, cleanupcnt);
+  array_verify (EV_A_ (ev_watcher **)cleanups, cleanupcnt);
 #endif
 
 #if EV_ASYNC_ENABLE
   assert (asyncmax >= asynccnt);
-  array_verify (EV_A_ (W *)asyncs, asynccnt);
+  array_verify (EV_A_ (ev_watcher **)asyncs, asynccnt);
 #endif
 
 #if EV_PREPARE_ENABLE
   assert (preparemax >= preparecnt);
-  array_verify (EV_A_ (W *)prepares, preparecnt);
+  array_verify (EV_A_ (ev_watcher **)prepares, preparecnt);
 #endif
 
 #if EV_CHECK_ENABLE
   assert (checkmax >= checkcnt);
-  array_verify (EV_A_ (W *)checks, checkcnt);
+  array_verify (EV_A_ (ev_watcher **)checks, checkcnt);
 #endif
 
 # if 0
 #if EV_CHILD_ENABLE
-  for (w = (ev_child *)childs [chain & ((EV_PID_HASHSIZE) - 1)]; w; w = (ev_child *)((WL)w)->next)
+  for (w = (ev_child *)childs [chain & ((EV_PID_HASHSIZE) - 1)]; w; w = (ev_child *)((ev_watcher_list *)w)->next)
   for (signum = EV_NSIG; signum--; ) if (signals [signum].pending)
 #endif
 # endif
@@ -3237,7 +2356,7 @@ ev_verify (EV_P) EV_THROW
 #endif
 
 #if EV_MULTIPLICITY
-ecb_cold
+
 struct ev_loop *
 #else
 int
@@ -3281,7 +2400,7 @@ ev_loop_fork (EV_P) EV_THROW
 void
 ev_invoke (EV_P_ void *w, int revents)
 {
-  EV_CB_INVOKE ((W)w, revents);
+  EV_CB_INVOKE ((ev_watcher *)w, revents);
 }
 
 unsigned int
@@ -3296,7 +2415,7 @@ ev_pending_count (EV_P) EV_THROW
   return count;
 }
 
-noinline
+
 void
 ev_invoke_pending (EV_P)
 {
@@ -3320,7 +2439,7 @@ ev_invoke_pending (EV_P)
 #if EV_IDLE_ENABLE
 /* make idle watchers pending. this handles the "call-idle */
 /* only when higher priorities are idle" logic */
-inline_size void
+static inline void
 idle_reify (EV_P)
 {
   if (expect_false (idleall))
@@ -3334,7 +2453,7 @@ idle_reify (EV_P)
 
           if (idlecnt [pri])
             {
-              queue_events (EV_A_ (W *)idles [pri], idlecnt [pri], EV_IDLE);
+              queue_events (EV_A_ (ev_watcher **)idles [pri], idlecnt [pri], EV_IDLE);
               break;
             }
         }
@@ -3343,7 +2462,7 @@ idle_reify (EV_P)
 #endif
 
 /* make timers pending */
-inline_size void
+static inline void
 timers_reify (EV_P)
 {
   EV_FREQUENT_CHECK;
@@ -3372,7 +2491,7 @@ timers_reify (EV_P)
             ev_timer_stop (EV_A_ w); /* nonrepeating: stop timer */
 
           EV_FREQUENT_CHECK;
-          feed_reverse (EV_A_ (W)w);
+          feed_reverse (EV_A_ (ev_watcher *)w);
         }
       while (timercnt && ANHE_at (timers [HEAP0]) < mn_now);
 
@@ -3382,7 +2501,7 @@ timers_reify (EV_P)
 
 #if EV_PERIODIC_ENABLE
 
-noinline
+
 static void
 periodic_recalc (EV_P_ ev_periodic *w)
 {
@@ -3408,7 +2527,7 @@ periodic_recalc (EV_P_ ev_periodic *w)
 }
 
 /* make periodics pending */
-inline_size void
+static inline void
 periodics_reify (EV_P)
 {
   EV_FREQUENT_CHECK;
@@ -3441,7 +2560,7 @@ periodics_reify (EV_P)
             ev_periodic_stop (EV_A_ w); /* nonrepeating: stop timer */
 
           EV_FREQUENT_CHECK;
-          feed_reverse (EV_A_ (W)w);
+          feed_reverse (EV_A_ (ev_watcher *)w);
         }
       while (periodiccnt && ANHE_at (periodics [HEAP0]) < ev_rt_now);
 
@@ -3451,7 +2570,7 @@ periodics_reify (EV_P)
 
 /* simply recalculate all periodics */
 /* TODO: maybe ensure that at least one event happens when jumping forward? */
-noinline ecb_cold
+ 
 static void
 periodics_reschedule (EV_P)
 {
@@ -3475,7 +2594,7 @@ periodics_reschedule (EV_P)
 #endif
 
 /* adjust all timers by a given offset */
-noinline ecb_cold
+ 
 static void
 timers_reschedule (EV_P_ ev_tstamp adjust)
 {
@@ -3491,11 +2610,11 @@ timers_reschedule (EV_P_ ev_tstamp adjust)
 
 /* fetch new monotonic and realtime times from the kernel */
 /* also detect if there was a timejump, and act accordingly */
-inline_speed void
+static inline void
 time_update (EV_P_ ev_tstamp max_block)
 {
 #if EV_USE_MONOTONIC
-  if (expect_true (have_monotonic))
+  if (expect_true (g_have_monotonic))
     {
       int i;
       ev_tstamp odiff = rtmn_diff;
@@ -3593,7 +2712,7 @@ ev_run (EV_P_ int flags)
       if (expect_false (postfork))
         if (forkcnt)
           {
-            queue_events (EV_A_ (W *)forks, forkcnt, EV_FORK);
+            queue_events (EV_A_ (ev_watcher **)forks, forkcnt, EV_FORK);
             EV_INVOKE_PENDING;
           }
 #endif
@@ -3602,7 +2721,7 @@ ev_run (EV_P_ int flags)
       /* queue prepare watchers (and execute them) */
       if (expect_false (preparecnt))
         {
-          queue_events (EV_A_ (W *)prepares, preparecnt, EV_PREPARE);
+          queue_events (EV_A_ (ev_watcher **)prepares, preparecnt, EV_PREPARE);
           EV_INVOKE_PENDING;
         }
 #endif
@@ -3711,7 +2830,7 @@ ev_run (EV_P_ int flags)
 #if EV_CHECK_ENABLE
       /* queue check watchers, to be executed first */
       if (expect_false (checkcnt))
-        queue_events (EV_A_ (W *)checks, checkcnt, EV_CHECK);
+        queue_events (EV_A_ (ev_watcher **)checks, checkcnt, EV_CHECK);
 #endif
 
       EV_INVOKE_PENDING;
@@ -3778,15 +2897,15 @@ ev_resume (EV_P) EV_THROW
 /*****************************************************************************/
 /* singly-linked list management, used when the expected list length is short */
 
-inline_size void
-wlist_add (WL *head, WL elem)
+static inline void
+wlist_add (ev_watcher_list **head, ev_watcher_list *elem)
 {
   elem->next = *head;
   *head = elem;
 }
 
-inline_size void
-wlist_del (WL *head, WL elem)
+static inline void
+wlist_del (ev_watcher_list **head, ev_watcher_list *elem)
 {
   while (*head)
     {
@@ -3801,12 +2920,12 @@ wlist_del (WL *head, WL elem)
 }
 
 /* internal, faster, version of ev_clear_pending */
-inline_speed void
-clear_pending (EV_P_ W w)
+static inline void
+clear_pending (EV_P_ ev_watcher *w)
 {
   if (w->pending)
     {
-      pendings [ABSPRI (w)][w->pending - 1].w = (W)&pending_w;
+      pendings [ABSPRI (w)][w->pending - 1].w = (ev_watcher *)&pending_w;
       w->pending = 0;
     }
 }
@@ -3814,13 +2933,13 @@ clear_pending (EV_P_ W w)
 int
 ev_clear_pending (EV_P_ void *w) EV_THROW
 {
-  W w_ = (W)w;
+  ev_watcher *w_ = (ev_watcher *)w;
   int pending = w_->pending;
 
   if (expect_true (pending))
     {
       ANPENDING *p = pendings [ABSPRI (w_)] + pending - 1;
-      p->w = (W)&pending_w;
+      p->w = (ev_watcher *)&pending_w;
       w_->pending = 0;
       return p->events;
     }
@@ -3828,8 +2947,8 @@ ev_clear_pending (EV_P_ void *w) EV_THROW
     return 0;
 }
 
-inline_size void
-pri_adjust (EV_P_ W w)
+static inline void
+pri_adjust (EV_P_ ev_watcher *w)
 {
   int pri = ev_priority (w);
   pri = pri < EV_MINPRI ? EV_MINPRI : pri;
@@ -3837,16 +2956,16 @@ pri_adjust (EV_P_ W w)
   ev_set_priority (w, pri);
 }
 
-inline_speed void
-ev_start (EV_P_ W w, int active)
+static inline void
+ev_start (EV_P_ ev_watcher *w, int active)
 {
   pri_adjust (EV_A_ w);
   w->active = active;
   ev_ref (EV_A);
 }
 
-inline_size void
-ev_stop (EV_P_ W w)
+static inline void
+ev_stop (EV_P_ ev_watcher *w)
 {
   ev_unref (EV_A);
   w->active = 0;
@@ -3854,7 +2973,7 @@ ev_stop (EV_P_ W w)
 
 /*****************************************************************************/
 
-noinline
+
 void
 ev_io_start (EV_P_ ev_io *w) EV_THROW
 {
@@ -3868,12 +2987,12 @@ ev_io_start (EV_P_ ev_io *w) EV_THROW
 
   EV_FREQUENT_CHECK;
 
-  ev_start (EV_A_ (W)w, 1);
+  ev_start (EV_A_ (ev_watcher *)w, 1);
   array_needsize (ANFD, anfds, anfdmax, fd + 1, array_init_zero);
-  wlist_add (&anfds[fd].head, (WL)w);
+  wlist_add (&anfds[fd].head, (ev_watcher_list *)w);
 
   /* common bug, apparently */
-  assert (("libev: ev_io_start called with corrupted watcher", ((WL)w)->next != (WL)w));
+  assert (("libev: ev_io_start called with corrupted watcher", ((ev_watcher_list *)w)->next != (ev_watcher_list *)w));
 
   fd_change (EV_A_ fd, w->events & EV__IOFDSET | EV_ANFD_REIFY);
   w->events &= ~EV__IOFDSET;
@@ -3881,11 +3000,11 @@ ev_io_start (EV_P_ ev_io *w) EV_THROW
   EV_FREQUENT_CHECK;
 }
 
-noinline
+
 void
 ev_io_stop (EV_P_ ev_io *w) EV_THROW
 {
-  clear_pending (EV_A_ (W)w);
+  clear_pending (EV_A_ (ev_watcher *)w);
   if (expect_false (!ev_is_active (w)))
     return;
 
@@ -3893,15 +3012,15 @@ ev_io_stop (EV_P_ ev_io *w) EV_THROW
 
   EV_FREQUENT_CHECK;
 
-  wlist_del (&anfds[w->fd].head, (WL)w);
-  ev_stop (EV_A_ (W)w);
+  wlist_del (&anfds[w->fd].head, (ev_watcher_list *)w);
+  ev_stop (EV_A_ (ev_watcher *)w);
 
   fd_change (EV_A_ w->fd, EV_ANFD_REIFY);
 
   EV_FREQUENT_CHECK;
 }
 
-noinline
+
 void
 ev_timer_start (EV_P_ ev_timer *w) EV_THROW
 {
@@ -3915,22 +3034,22 @@ ev_timer_start (EV_P_ ev_timer *w) EV_THROW
   EV_FREQUENT_CHECK;
 
   ++timercnt;
-  ev_start (EV_A_ (W)w, timercnt + HEAP0 - 1);
+  ev_start (EV_A_ (ev_watcher *)w, timercnt + HEAP0 - 1);
   array_needsize (ANHE, timers, timermax, ev_active (w) + 1, EMPTY2);
-  ANHE_w (timers [ev_active (w)]) = (WT)w;
+  ANHE_w (timers [ev_active (w)]) = (ev_watcher_time *)w;
   ANHE_at_cache (timers [ev_active (w)]);
   upheap (timers, ev_active (w));
 
   EV_FREQUENT_CHECK;
 
-  /*assert (("libev: internal timer heap corruption", timers [ev_active (w)] == (WT)w));*/
+  /*assert (("libev: internal timer heap corruption", timers [ev_active (w)] == (ev_watcher_time *)w));*/
 }
 
-noinline
+
 void
 ev_timer_stop (EV_P_ ev_timer *w) EV_THROW
 {
-  clear_pending (EV_A_ (W)w);
+  clear_pending (EV_A_ (ev_watcher *)w);
   if (expect_false (!ev_is_active (w)))
     return;
 
@@ -3939,7 +3058,7 @@ ev_timer_stop (EV_P_ ev_timer *w) EV_THROW
   {
     int active = ev_active (w);
 
-    assert (("libev: internal timer heap corruption", ANHE_w (timers [active]) == (WT)w));
+    assert (("libev: internal timer heap corruption", ANHE_w (timers [active]) == (ev_watcher_time *)w));
 
     --timercnt;
 
@@ -3952,18 +3071,18 @@ ev_timer_stop (EV_P_ ev_timer *w) EV_THROW
 
   ev_at (w) -= mn_now;
 
-  ev_stop (EV_A_ (W)w);
+  ev_stop (EV_A_ (ev_watcher *)w);
 
   EV_FREQUENT_CHECK;
 }
 
-noinline
+
 void
 ev_timer_again (EV_P_ ev_timer *w) EV_THROW
 {
   EV_FREQUENT_CHECK;
 
-  clear_pending (EV_A_ (W)w);
+  clear_pending (EV_A_ (ev_watcher *)w);
 
   if (ev_is_active (w))
     {
@@ -3992,7 +3111,7 @@ ev_timer_remaining (EV_P_ ev_timer *w) EV_THROW
 }
 
 #if EV_PERIODIC_ENABLE
-noinline
+
 void
 ev_periodic_start (EV_P_ ev_periodic *w) EV_THROW
 {
@@ -4012,22 +3131,22 @@ ev_periodic_start (EV_P_ ev_periodic *w) EV_THROW
   EV_FREQUENT_CHECK;
 
   ++periodiccnt;
-  ev_start (EV_A_ (W)w, periodiccnt + HEAP0 - 1);
+  ev_start (EV_A_ (ev_watcher *)w, periodiccnt + HEAP0 - 1);
   array_needsize (ANHE, periodics, periodicmax, ev_active (w) + 1, EMPTY2);
-  ANHE_w (periodics [ev_active (w)]) = (WT)w;
+  ANHE_w (periodics [ev_active (w)]) = (ev_watcher_time *)w;
   ANHE_at_cache (periodics [ev_active (w)]);
   upheap (periodics, ev_active (w));
 
   EV_FREQUENT_CHECK;
 
-  /*assert (("libev: internal periodic heap corruption", ANHE_w (periodics [ev_active (w)]) == (WT)w));*/
+  /*assert (("libev: internal periodic heap corruption", ANHE_w (periodics [ev_active (w)]) == (ev_watcher_time *)w));*/
 }
 
-noinline
+
 void
 ev_periodic_stop (EV_P_ ev_periodic *w) EV_THROW
 {
-  clear_pending (EV_A_ (W)w);
+  clear_pending (EV_A_ (ev_watcher *)w);
   if (expect_false (!ev_is_active (w)))
     return;
 
@@ -4036,7 +3155,7 @@ ev_periodic_stop (EV_P_ ev_periodic *w) EV_THROW
   {
     int active = ev_active (w);
 
-    assert (("libev: internal periodic heap corruption", ANHE_w (periodics [active]) == (WT)w));
+    assert (("libev: internal periodic heap corruption", ANHE_w (periodics [active]) == (ev_watcher_time *)w));
 
     --periodiccnt;
 
@@ -4047,12 +3166,12 @@ ev_periodic_stop (EV_P_ ev_periodic *w) EV_THROW
       }
   }
 
-  ev_stop (EV_A_ (W)w);
+  ev_stop (EV_A_ (ev_watcher *)w);
 
   EV_FREQUENT_CHECK;
 }
 
-noinline
+
 void
 ev_periodic_again (EV_P_ ev_periodic *w) EV_THROW
 {
@@ -4068,7 +3187,7 @@ ev_periodic_again (EV_P_ ev_periodic *w) EV_THROW
 
 #if EV_SIGNAL_ENABLE
 
-noinline
+
 void
 ev_signal_start (EV_P_ ev_signal *w) EV_THROW
 {
@@ -4117,10 +3236,10 @@ ev_signal_start (EV_P_ ev_signal *w) EV_THROW
     }
 #endif
 
-  ev_start (EV_A_ (W)w, 1);
-  wlist_add (&signals [w->signum - 1].head, (WL)w);
+  ev_start (EV_A_ (ev_watcher *)w, 1);
+  wlist_add (&signals [w->signum - 1].head, (ev_watcher_list *)w);
 
-  if (!((WL)w)->next)
+  if (!((ev_watcher_list *)w)->next)
 # if EV_USE_SIGNALFD
     if (sigfd < 0) /*TODO*/
 # endif
@@ -4151,18 +3270,18 @@ ev_signal_start (EV_P_ ev_signal *w) EV_THROW
   EV_FREQUENT_CHECK;
 }
 
-noinline
+
 void
 ev_signal_stop (EV_P_ ev_signal *w) EV_THROW
 {
-  clear_pending (EV_A_ (W)w);
+  clear_pending (EV_A_ (ev_watcher *)w);
   if (expect_false (!ev_is_active (w)))
     return;
 
   EV_FREQUENT_CHECK;
 
-  wlist_del (&signals [w->signum - 1].head, (WL)w);
-  ev_stop (EV_A_ (W)w);
+  wlist_del (&signals [w->signum - 1].head, (ev_watcher_list *)w);
+  ev_stop (EV_A_ (ev_watcher *)w);
 
   if (!signals [w->signum - 1].head)
     {
@@ -4204,8 +3323,8 @@ ev_child_start (EV_P_ ev_child *w) EV_THROW
 
   EV_FREQUENT_CHECK;
 
-  ev_start (EV_A_ (W)w, 1);
-  wlist_add (&childs [w->pid & ((EV_PID_HASHSIZE) - 1)], (WL)w);
+  ev_start (EV_A_ (ev_watcher *)w, 1);
+  wlist_add (&childs [w->pid & ((EV_PID_HASHSIZE) - 1)], (ev_watcher_list *)w);
 
   EV_FREQUENT_CHECK;
 }
@@ -4213,14 +3332,14 @@ ev_child_start (EV_P_ ev_child *w) EV_THROW
 void
 ev_child_stop (EV_P_ ev_child *w) EV_THROW
 {
-  clear_pending (EV_A_ (W)w);
+  clear_pending (EV_A_ (ev_watcher *)w);
   if (expect_false (!ev_is_active (w)))
     return;
 
   EV_FREQUENT_CHECK;
 
-  wlist_del (&childs [w->pid & ((EV_PID_HASHSIZE) - 1)], (WL)w);
-  ev_stop (EV_A_ (W)w);
+  wlist_del (&childs [w->pid & ((EV_PID_HASHSIZE) - 1)], (ev_watcher_list *)w);
+  ev_stop (EV_A_ (ev_watcher *)w);
 
   EV_FREQUENT_CHECK;
 }
@@ -4238,14 +3357,14 @@ ev_child_stop (EV_P_ ev_child *w) EV_THROW
 #define NFS_STAT_INTERVAL 30.1074891 /* for filesystems potentially failing inotify */
 #define MIN_STAT_INTERVAL  0.1074891
 
-noinline static void stat_timer_cb (EV_P_ ev_timer *w_, int revents);
+ static void stat_timer_cb (EV_P_ ev_timer *w_, int revents);
 
 #if EV_USE_INOTIFY
 
 /* the * 2 is to allow for alignment padding, which for some reason is >> 8 */
 # define EV_INOTIFY_BUFSIZE (sizeof (struct inotify_event) * 2 + NAME_MAX)
 
-noinline
+
 static void
 infy_add (EV_P_ ev_stat *w)
 {
@@ -4312,7 +3431,7 @@ infy_add (EV_P_ ev_stat *w)
     }
 
   if (w->wd >= 0)
-    wlist_add (&fs_hash [w->wd & ((EV_INOTIFY_HASHSIZE) - 1)].head, (WL)w);
+    wlist_add (&fs_hash [w->wd & ((EV_INOTIFY_HASHSIZE) - 1)].head, (ev_watcher_list *)w);
 
   /* now re-arm timer, if required */
   if (ev_is_active (&w->timer)) ev_ref (EV_A);
@@ -4320,7 +3439,7 @@ infy_add (EV_P_ ev_stat *w)
   if (ev_is_active (&w->timer)) ev_unref (EV_A);
 }
 
-noinline
+
 static void
 infy_del (EV_P_ ev_stat *w)
 {
@@ -4332,13 +3451,13 @@ infy_del (EV_P_ ev_stat *w)
 
   w->wd = -2;
   slot = wd & ((EV_INOTIFY_HASHSIZE) - 1);
-  wlist_del (&fs_hash [slot].head, (WL)w);
+  wlist_del (&fs_hash [slot].head, (ev_watcher_list *)w);
 
   /* remove this watcher, if others are watching it, they will rearm */
   inotify_rm_watch (fs_fd, wd);
 }
 
-noinline
+
 static void
 infy_wd (EV_P_ int slot, int wd, struct inotify_event *ev)
 {
@@ -4348,7 +3467,7 @@ infy_wd (EV_P_ int slot, int wd, struct inotify_event *ev)
       infy_wd (EV_A_ slot, wd, ev);
   else
     {
-      WL w_;
+      ev_watcher_list *w_;
 
       for (w_ = fs_hash [slot & ((EV_INOTIFY_HASHSIZE) - 1)].head; w_; )
         {
@@ -4359,7 +3478,7 @@ infy_wd (EV_P_ int slot, int wd, struct inotify_event *ev)
             {
               if (ev->mask & (IN_IGNORED | IN_UNMOUNT | IN_DELETE_SELF))
                 {
-                  wlist_del (&fs_hash [slot & ((EV_INOTIFY_HASHSIZE) - 1)].head, (WL)w);
+                  wlist_del (&fs_hash [slot & ((EV_INOTIFY_HASHSIZE) - 1)].head, (ev_watcher_list *)w);
                   w->wd = -1;
                   infy_add (EV_A_ w); /* re-add, no matter what */
                 }
@@ -4385,7 +3504,7 @@ infy_cb (EV_P_ ev_io *w, int revents)
     }
 }
 
-inline_size ecb_cold
+static inline 
 void
 ev_check_2625 (EV_P)
 {
@@ -4398,7 +3517,7 @@ ev_check_2625 (EV_P)
   fs_2625 = 1;
 }
 
-inline_size int
+static inline int
 infy_newfd (void)
 {
 #if defined IN_CLOEXEC && defined IN_NONBLOCK
@@ -4409,7 +3528,7 @@ infy_newfd (void)
   return inotify_init ();
 }
 
-inline_size void
+static inline void
 infy_init (EV_P)
 {
   if (fs_fd != -2)
@@ -4431,7 +3550,7 @@ infy_init (EV_P)
     }
 }
 
-inline_size void
+static inline void
 infy_fork (EV_P)
 {
   int slot;
@@ -4454,7 +3573,7 @@ infy_fork (EV_P)
 
   for (slot = 0; slot < (EV_INOTIFY_HASHSIZE); ++slot)
     {
-      WL w_ = fs_hash [slot].head;
+      ev_watcher_list *w_ = fs_hash [slot].head;
       fs_hash [slot].head = 0;
 
       while (w_)
@@ -4479,12 +3598,6 @@ infy_fork (EV_P)
 
 #endif
 
-#ifdef _WIN32
-# define EV_LSTAT(p,b) _stati64 (p, b)
-#else
-# define EV_LSTAT(p,b) lstat (p, b)
-#endif
-
 void
 ev_stat_stat (EV_P_ ev_stat *w) EV_THROW
 {
@@ -4494,7 +3607,7 @@ ev_stat_stat (EV_P_ ev_stat *w) EV_THROW
     w->attr.st_nlink = 1;
 }
 
-noinline
+
 static void
 stat_timer_cb (EV_P_ ev_timer *w_, int revents)
 {
@@ -4561,7 +3674,7 @@ ev_stat_start (EV_P_ ev_stat *w) EV_THROW
       ev_unref (EV_A);
     }
 
-  ev_start (EV_A_ (W)w, 1);
+  ev_start (EV_A_ (ev_watcher *)w, 1);
 
   EV_FREQUENT_CHECK;
 }
@@ -4569,7 +3682,7 @@ ev_stat_start (EV_P_ ev_stat *w) EV_THROW
 void
 ev_stat_stop (EV_P_ ev_stat *w) EV_THROW
 {
-  clear_pending (EV_A_ (W)w);
+  clear_pending (EV_A_ (ev_watcher *)w);
   if (expect_false (!ev_is_active (w)))
     return;
 
@@ -4585,7 +3698,7 @@ ev_stat_stop (EV_P_ ev_stat *w) EV_THROW
       ev_timer_stop (EV_A_ &w->timer);
     }
 
-  ev_stop (EV_A_ (W)w);
+  ev_stop (EV_A_ (ev_watcher *)w);
 
   EV_FREQUENT_CHECK;
 }
@@ -4598,7 +3711,7 @@ ev_idle_start (EV_P_ ev_idle *w) EV_THROW
   if (expect_false (ev_is_active (w)))
     return;
 
-  pri_adjust (EV_A_ (W)w);
+  pri_adjust (EV_A_ (ev_watcher *)w);
 
   EV_FREQUENT_CHECK;
 
@@ -4606,7 +3719,7 @@ ev_idle_start (EV_P_ ev_idle *w) EV_THROW
     int active = ++idlecnt [ABSPRI (w)];
 
     ++idleall;
-    ev_start (EV_A_ (W)w, active);
+    ev_start (EV_A_ (ev_watcher *)w, active);
 
     array_needsize (ev_idle *, idles [ABSPRI (w)], idlemax [ABSPRI (w)], active, EMPTY2);
     idles [ABSPRI (w)][active - 1] = w;
@@ -4618,7 +3731,7 @@ ev_idle_start (EV_P_ ev_idle *w) EV_THROW
 void
 ev_idle_stop (EV_P_ ev_idle *w) EV_THROW
 {
-  clear_pending (EV_A_ (W)w);
+  clear_pending (EV_A_ (ev_watcher *)w);
   if (expect_false (!ev_is_active (w)))
     return;
 
@@ -4630,7 +3743,7 @@ ev_idle_stop (EV_P_ ev_idle *w) EV_THROW
     idles [ABSPRI (w)][active - 1] = idles [ABSPRI (w)][--idlecnt [ABSPRI (w)]];
     ev_active (idles [ABSPRI (w)][active - 1]) = active;
 
-    ev_stop (EV_A_ (W)w);
+    ev_stop (EV_A_ (ev_watcher *)w);
     --idleall;
   }
 
@@ -4647,7 +3760,7 @@ ev_prepare_start (EV_P_ ev_prepare *w) EV_THROW
 
   EV_FREQUENT_CHECK;
 
-  ev_start (EV_A_ (W)w, ++preparecnt);
+  ev_start (EV_A_ (ev_watcher *)w, ++preparecnt);
   array_needsize (ev_prepare *, prepares, preparemax, preparecnt, EMPTY2);
   prepares [preparecnt - 1] = w;
 
@@ -4657,7 +3770,7 @@ ev_prepare_start (EV_P_ ev_prepare *w) EV_THROW
 void
 ev_prepare_stop (EV_P_ ev_prepare *w) EV_THROW
 {
-  clear_pending (EV_A_ (W)w);
+  clear_pending (EV_A_ (ev_watcher *)w);
   if (expect_false (!ev_is_active (w)))
     return;
 
@@ -4670,7 +3783,7 @@ ev_prepare_stop (EV_P_ ev_prepare *w) EV_THROW
     ev_active (prepares [active - 1]) = active;
   }
 
-  ev_stop (EV_A_ (W)w);
+  ev_stop (EV_A_ (ev_watcher *)w);
 
   EV_FREQUENT_CHECK;
 }
@@ -4685,7 +3798,7 @@ ev_check_start (EV_P_ ev_check *w) EV_THROW
 
   EV_FREQUENT_CHECK;
 
-  ev_start (EV_A_ (W)w, ++checkcnt);
+  ev_start (EV_A_ (ev_watcher *)w, ++checkcnt);
   array_needsize (ev_check *, checks, checkmax, checkcnt, EMPTY2);
   checks [checkcnt - 1] = w;
 
@@ -4695,7 +3808,7 @@ ev_check_start (EV_P_ ev_check *w) EV_THROW
 void
 ev_check_stop (EV_P_ ev_check *w) EV_THROW
 {
-  clear_pending (EV_A_ (W)w);
+  clear_pending (EV_A_ (ev_watcher *)w);
   if (expect_false (!ev_is_active (w)))
     return;
 
@@ -4708,14 +3821,14 @@ ev_check_stop (EV_P_ ev_check *w) EV_THROW
     ev_active (checks [active - 1]) = active;
   }
 
-  ev_stop (EV_A_ (W)w);
+  ev_stop (EV_A_ (ev_watcher *)w);
 
   EV_FREQUENT_CHECK;
 }
 #endif
 
 #if EV_EMBED_ENABLE
-noinline
+
 void
 ev_embed_sweep (EV_P_ ev_embed *w) EV_THROW
 {
@@ -4728,7 +3841,7 @@ embed_io_cb (EV_P_ ev_io *io, int revents)
   ev_embed *w = (ev_embed *)(((char *)io) - offsetof (ev_embed, io));
 
   if (ev_cb (w))
-    ev_feed_event (EV_A_ (W)w, EV_EMBED);
+    ev_feed_event (EV_A_ (ev_watcher *)w, EV_EMBED);
   else
     ev_run (w->other, EVRUN_NOWAIT);
 }
@@ -4800,7 +3913,7 @@ ev_embed_start (EV_P_ ev_embed *w) EV_THROW
 
   /*ev_idle_init (&w->idle, e,bed_idle_cb);*/
 
-  ev_start (EV_A_ (W)w, 1);
+  ev_start (EV_A_ (ev_watcher *)w, 1);
 
   EV_FREQUENT_CHECK;
 }
@@ -4808,7 +3921,7 @@ ev_embed_start (EV_P_ ev_embed *w) EV_THROW
 void
 ev_embed_stop (EV_P_ ev_embed *w) EV_THROW
 {
-  clear_pending (EV_A_ (W)w);
+  clear_pending (EV_A_ (ev_watcher *)w);
   if (expect_false (!ev_is_active (w)))
     return;
 
@@ -4818,7 +3931,7 @@ ev_embed_stop (EV_P_ ev_embed *w) EV_THROW
   ev_prepare_stop (EV_A_ &w->prepare);
   ev_fork_stop    (EV_A_ &w->fork);
 
-  ev_stop (EV_A_ (W)w);
+  ev_stop (EV_A_ (ev_watcher *)w);
 
   EV_FREQUENT_CHECK;
 }
@@ -4833,7 +3946,7 @@ ev_fork_start (EV_P_ ev_fork *w) EV_THROW
 
   EV_FREQUENT_CHECK;
 
-  ev_start (EV_A_ (W)w, ++forkcnt);
+  ev_start (EV_A_ (ev_watcher *)w, ++forkcnt);
   array_needsize (ev_fork *, forks, forkmax, forkcnt, EMPTY2);
   forks [forkcnt - 1] = w;
 
@@ -4843,7 +3956,7 @@ ev_fork_start (EV_P_ ev_fork *w) EV_THROW
 void
 ev_fork_stop (EV_P_ ev_fork *w) EV_THROW
 {
-  clear_pending (EV_A_ (W)w);
+  clear_pending (EV_A_ (ev_watcher *)w);
   if (expect_false (!ev_is_active (w)))
     return;
 
@@ -4856,7 +3969,7 @@ ev_fork_stop (EV_P_ ev_fork *w) EV_THROW
     ev_active (forks [active - 1]) = active;
   }
 
-  ev_stop (EV_A_ (W)w);
+  ev_stop (EV_A_ (ev_watcher *)w);
 
   EV_FREQUENT_CHECK;
 }
@@ -4871,7 +3984,7 @@ ev_cleanup_start (EV_P_ ev_cleanup *w) EV_THROW
 
   EV_FREQUENT_CHECK;
 
-  ev_start (EV_A_ (W)w, ++cleanupcnt);
+  ev_start (EV_A_ (ev_watcher *)w, ++cleanupcnt);
   array_needsize (ev_cleanup *, cleanups, cleanupmax, cleanupcnt, EMPTY2);
   cleanups [cleanupcnt - 1] = w;
 
@@ -4883,7 +3996,7 @@ ev_cleanup_start (EV_P_ ev_cleanup *w) EV_THROW
 void
 ev_cleanup_stop (EV_P_ ev_cleanup *w) EV_THROW
 {
-  clear_pending (EV_A_ (W)w);
+  clear_pending (EV_A_ (ev_watcher *)w);
   if (expect_false (!ev_is_active (w)))
     return;
 
@@ -4897,7 +4010,7 @@ ev_cleanup_stop (EV_P_ ev_cleanup *w) EV_THROW
     ev_active (cleanups [active - 1]) = active;
   }
 
-  ev_stop (EV_A_ (W)w);
+  ev_stop (EV_A_ (ev_watcher *)w);
 
   EV_FREQUENT_CHECK;
 }
@@ -4916,7 +4029,7 @@ ev_async_start (EV_P_ ev_async *w) EV_THROW
 
   EV_FREQUENT_CHECK;
 
-  ev_start (EV_A_ (W)w, ++asynccnt);
+  ev_start (EV_A_ (ev_watcher *)w, ++asynccnt);
   array_needsize (ev_async *, asyncs, asyncmax, asynccnt, EMPTY2);
   asyncs [asynccnt - 1] = w;
 
@@ -4926,7 +4039,7 @@ ev_async_start (EV_P_ ev_async *w) EV_THROW
 void
 ev_async_stop (EV_P_ ev_async *w) EV_THROW
 {
-  clear_pending (EV_A_ (W)w);
+  clear_pending (EV_A_ (ev_watcher *)w);
   if (expect_false (!ev_is_active (w)))
     return;
 
@@ -4939,7 +4052,7 @@ ev_async_stop (EV_P_ ev_async *w) EV_THROW
     ev_active (asyncs [active - 1]) = active;
   }
 
-  ev_stop (EV_A_ (W)w);
+  ev_stop (EV_A_ (ev_watcher *)w);
 
   EV_FREQUENT_CHECK;
 }
@@ -5023,7 +4136,7 @@ ev_once (EV_P_ int fd, int events, ev_tstamp timeout, void (*cb)(int revents, vo
 /*****************************************************************************/
 
 #if EV_WALK_ENABLE
-ecb_cold
+
 void
 ev_walk (EV_P_ int types, void (*cb)(EV_P_ int type, void *w)) EV_THROW
 {
