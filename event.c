@@ -47,13 +47,8 @@
 # include "event.h"
 #endif
 
-#if EV_MULTIPLICITY
 # define dLOOPev struct ev_loop *loop = (struct ev_loop *)ev->ev_base
 # define dLOOPbase struct ev_loop *loop = (struct ev_loop *)base
-#else
-# define dLOOPev
-# define dLOOPbase
-#endif
 
 /* never accessed, will always be cast from/to ev_loop */
 struct event_base
@@ -93,16 +88,10 @@ event_get_method (void)
 
 void *event_init (void)
 {
-#if EV_MULTIPLICITY
   if (ev_x_cur)
     ev_x_cur = (struct event_base *)ev_loop_new (EVFLAG_AUTO);
   else
     ev_x_cur = (struct event_base *)ev_default_loop (EVFLAG_AUTO);
-#else
-  assert (("libev: multiple event bases not supported when not compiled with EV_MULTIPLICITY", !ev_x_cur));
-
-  ev_x_cur = (struct event_base *)(long)ev_default_loop (EVFLAG_AUTO);
-#endif
 
   return ev_x_cur;
 }
@@ -116,22 +105,15 @@ event_base_get_method (const struct event_base *base)
 struct event_base *
 event_base_new (void)
 {
-#if EV_MULTIPLICITY
   return (struct event_base *)ev_loop_new (EVFLAG_AUTO);
-#else
-  assert (("libev: multiple event bases not supported when not compiled with EV_MULTIPLICITY"));
-  return NULL;
-#endif
 }
 
 void event_base_free (struct event_base *base)
 {
   dLOOPbase;
 
-#if EV_MULTIPLICITY
   if (!ev_is_default_loop (loop))
     ev_loop_destroy (loop);
-#endif
 }
 
 int event_dispatch (void)
@@ -172,7 +154,7 @@ ev_x_cb (struct event *ev, int revents)
 }
 
 static void
-ev_x_cb_sig (EV_P_ struct ev_signal *w, int revents)
+ev_x_cb_sig (struct ev_loop *loop, struct ev_signal *w, int revents)
 {
   struct event *ev = (struct event *)(((char *)w) - offsetof (struct event, iosig.sig));
 
@@ -183,7 +165,7 @@ ev_x_cb_sig (EV_P_ struct ev_signal *w, int revents)
 }
 
 static void
-ev_x_cb_io (EV_P_ struct ev_io *w, int revents)
+ev_x_cb_io (struct ev_loop *loop, struct ev_io *w, int revents)
 {
   struct event *ev = (struct event *)(((char *)w) - offsetof (struct event, iosig.io));
 
@@ -194,7 +176,7 @@ ev_x_cb_io (EV_P_ struct ev_io *w, int revents)
 }
 
 static void
-ev_x_cb_to (EV_P_ struct ev_timer *w, int revents)
+ev_x_cb_to (struct ev_loop *loop, struct ev_timer *w, int revents)
 {
   struct event *ev = (struct event *)(((char *)w) - offsetof (struct event, to));
 

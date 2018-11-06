@@ -152,7 +152,7 @@ libev \- a high performance full\-featured event loop written in C
 \&   // all watcher callbacks have a similar signature
 \&   // this callback is called when data is readable on stdin
 \&   static void
-\&   stdin_cb (EV_P_ ev_io *w, int revents)
+\&   stdin_cb (struct ev_loop *loop, ev_io *w, int revents)
 \&   {
 \&     puts ("stdin ready");
 \&     // for one\-shot events, one must manually stop the watcher
@@ -165,7 +165,7 @@ libev \- a high performance full\-featured event loop written in C
 \&
 \&   // another callback, this time for a time\-out
 \&   static void
-\&   timeout_cb (EV_P_ ev_timer *w, int revents)
+\&   timeout_cb (struct ev_loop *loop, ev_timer *w, int revents)
 \&   {
 \&     puts ("timeout");
 \&     // this causes the innermost ev_run to stop iterating
@@ -1136,7 +1136,7 @@ thread executes within \f(CW\*(C`ev_invoke_pending\*(C'\fR or \f(CW\*(C`ev_run\*
 Returns the number of pending watchers \- zero indicates that no watchers
 are pending.
 .IP "ev_set_invoke_pending_cb (loop, void (*invoke_pending_cb)(\s-1EV_P\s0))" 4
-.IX Item "ev_set_invoke_pending_cb (loop, void (*invoke_pending_cb)(EV_P))"
+.IX Item "ev_set_invoke_pending_cb (loop, void (*invoke_pending_cb)(struct ev_loop *loop))"
 This overrides the invoke pending functionality of the loop: Instead of
 invoking all pending watchers when there are any, \f(CW\*(C`ev_run\*(C'\fR will call
 this callback instead. This is useful, for example, when you want to
@@ -1145,7 +1145,7 @@ invoke the actual watchers inside another context (another thread etc.).
 If you want to reset the callback, use \f(CW\*(C`ev_invoke_pending\*(C'\fR as new
 callback.
 .IP "ev_set_loop_release_cb (loop, void (*release)(\s-1EV_P\s0) throw (), void (*acquire)(\s-1EV_P\s0) throw ())" 4
-.IX Item "ev_set_loop_release_cb (loop, void (*release)(EV_P) throw (), void (*acquire)(EV_P) throw ())"
+.IX Item "ev_set_loop_release_cb (loop, void (*release)(struct ev_loop *loop) throw (), void (*acquire)(struct ev_loop *loop) throw ())"
 Sometimes you want to share the same loop between multiple threads. This
 can be done relatively simply by putting mutex_lock/unlock calls around
 each call to a libev function.
@@ -1629,7 +1629,7 @@ other events are pending:
 \&   ev_io io;     // actual event watcher
 \&
 \&   static void
-\&   io_cb (EV_P_ ev_io *w, int revents)
+\&   io_cb (struct ev_loop *loop, ev_io *w, int revents)
 \&   {
 \&     // stop the I/O watcher, we received the event, but
 \&     // are not yet ready to handle it.
@@ -1642,14 +1642,14 @@ other events are pending:
 \&   }
 \&
 \&   static void
-\&   idle_cb (EV_P_ ev_idle *w, int revents)
+\&   idle_cb (struct ev_loop *loop, ev_idle *w, int revents)
 \&   {
 \&     // actual processing
 \&     read (STDIN_FILENO, ...);
 \&
 \&     // have to start the I/O watcher again, as
 \&     // we have handled the event
-\&     ev_io_start (EV_P_ &io);
+\&     ev_io_start (struct ev_loop *loop, &io);
 \&   }
 \&
 \&   // initialisation
@@ -1998,7 +1998,7 @@ within the callback:
 \&   ev_timer timer;
 \&
 \&   static void
-\&   callback (EV_P_ ev_timer *w, int revents)
+\&   callback (struct ev_loop *loop, ev_timer *w, int revents)
 \&   {
 \&     // calculate when the timeout would happen
 \&     ev_tstamp after = last_activity \- ev_now (EV_A) + timeout;
@@ -2718,7 +2718,7 @@ its completion.
 \&   ev_child cw;
 \&
 \&   static void
-\&   child_cb (EV_P_ ev_child *w, int revents)
+\&   child_cb (struct ev_loop *loop, ev_child *w, int revents)
 \&   {
 \&     ev_child_stop (EV_A_ w);
 \&     printf ("process %d exited with status %x\en", w\->rpid, w\->rstatus);
@@ -2946,7 +2946,7 @@ one might do the work both on \f(CW\*(C`ev_stat\*(C'\fR callback invocation \fIa
 \&   static ev_timer timer;
 \&
 \&   static void
-\&   timer_cb (EV_P_ ev_timer *w, int revents)
+\&   timer_cb (struct ev_loop *loop, ev_timer *w, int revents)
 \&   {
 \&     ev_timer_stop (EV_A_ w);
 \&
@@ -2954,7 +2954,7 @@ one might do the work both on \f(CW\*(C`ev_stat\*(C'\fR callback invocation \fIa
 \&   }
 \&
 \&   static void
-\&   stat_cb (EV_P_ ev_stat *w, int revents)
+\&   stat_cb (struct ev_loop *loop, ev_stat *w, int revents)
 \&   {
 \&     /* reset the one\-second timer */
 \&     ev_timer_again (EV_A_ &timer);
@@ -3203,7 +3203,7 @@ callbacks, and only destroy/create the watchers in the prepare watcher.
 .PP
 .Vb 5
 \&   static void
-\&   timer_cb (EV_P_ ev_timer *w, int revents)
+\&   timer_cb (struct ev_loop *loop, ev_timer *w, int revents)
 \&   {
 \&     adns_state ads = (adns_state)w\->data;
 \&     update_now (EV_A);
@@ -3212,7 +3212,7 @@ callbacks, and only destroy/create the watchers in the prepare watcher.
 \&   }
 \&
 \&   static void
-\&   io_cb (EV_P_ ev_io *w, int revents)
+\&   io_cb (struct ev_loop *loop, ev_io *w, int revents)
 \&   {
 \&     adns_state ads = (adns_state)w\->data;
 \&     update_now (EV_A);
@@ -3532,7 +3532,7 @@ an example that does that for some fictitious \s-1SIGUSR1\s0 handler:
 \&   }
 \&
 \&   static void
-\&   mysig_cb (EV_P_ ev_async *w, int revents)
+\&   mysig_cb (struct ev_loop *loop, ev_async *w, int revents)
 \&   {
 \&     sometype data;
 \&     sigset_t block, prev;
@@ -3574,7 +3574,7 @@ employ a traditional mutex lock, such as in this pthread example:
 \&   }
 \&
 \&   static void
-\&   mysig_cb (EV_P_ ev_async *w, int revents)
+\&   mysig_cb (struct ev_loop *loop, ev_async *w, int revents)
 \&   {
 \&     pthread_mutex_lock (&mymutex);
 \&
@@ -3741,14 +3741,14 @@ real programmers):
 \&   #include <stddef.h>
 \&
 \&   static void
-\&   t1_cb (EV_P_ ev_timer *w, int revents)
+\&   t1_cb (struct ev_loop *loop, ev_timer *w, int revents)
 \&   {
 \&     struct my_biggy big = (struct my_biggy *)
 \&       (((char *)w) \- offsetof (struct my_biggy, t1));
 \&   }
 \&
 \&   static void
-\&   t2_cb (EV_P_ ev_timer *w, int revents)
+\&   t2_cb (struct ev_loop *loop, ev_timer *w, int revents)
 \&   {
 \&     struct my_biggy big = (struct my_biggy *)
 \&       (((char *)w) \- offsetof (struct my_biggy, t2));
@@ -3863,7 +3863,7 @@ First, you need to associate some data with the event loop:
 \&     cond_t invoke_cv;
 \&   } userdata;
 \&
-\&   void prepare_loop (EV_P)
+\&   void prepare_loop (struct ev_loop *loop)
 \&   {
 \&      // for simplicity, we use a static userdata struct.
 \&      static userdata u;
@@ -3890,7 +3890,7 @@ that might have been added:
 .PP
 .Vb 5
 \&   static void
-\&   async_cb (EV_P_ ev_async *w, int revents)
+\&   async_cb (struct ev_loop *loop, ev_async *w, int revents)
 \&   {
 \&      // just used for the side effects
 \&   }
@@ -3901,14 +3901,14 @@ protecting the loop data, respectively.
 .PP
 .Vb 6
 \&   static void
-\&   l_release (EV_P)
+\&   l_release (struct ev_loop *loop)
 \&   {
 \&     userdata *u = ev_userdata (EV_A);
 \&     pthread_mutex_unlock (&u\->lock);
 \&   }
 \&
 \&   static void
-\&   l_acquire (EV_P)
+\&   l_acquire (struct ev_loop *loop)
 \&   {
 \&     userdata *u = ev_userdata (EV_A);
 \&     pthread_mutex_lock (&u\->lock);
@@ -3942,7 +3942,7 @@ watchers is very beneficial):
 .PP
 .Vb 4
 \&   static void
-\&   l_invoke (EV_P)
+\&   l_invoke (struct ev_loop *loop)
 \&   {
 \&     userdata *u = ev_userdata (EV_A);
 \&
@@ -3960,7 +3960,7 @@ thread to continue:
 .PP
 .Vb 4
 \&   static void
-\&   real_invoke_pending (EV_P)
+\&   real_invoke_pending (struct ev_loop *loop)
 \&   {
 \&     userdata *u = ev_userdata (EV_A);
 \&
@@ -4402,19 +4402,19 @@ loop argument\*(R"). The \f(CW\*(C`EV_A\*(C'\fR form is used when this is the so
 .Sp
 It assumes the variable \f(CW\*(C`loop\*(C'\fR of type \f(CW\*(C`struct ev_loop *\*(C'\fR is in scope,
 which is often provided by the following macro.
-.ie n .IP """EV_P"", ""EV_P_""" 4
-.el .IP "\f(CWEV_P\fR, \f(CWEV_P_\fR" 4
-.IX Item "EV_P, EV_P_"
+.ie n .IP """EV_P"", ""struct ev_loop *loop,""" 4
+.el .IP "\f(CWEV_P\fR, \f(CWstruct ev_loop *loop,\fR" 4
+.IX Item "EV_P, struct ev_loop *loop,"
 This provides the loop \fIparameter\fR for functions, if one is required (\*(L"ev
 loop parameter\*(R"). The \f(CW\*(C`EV_P\*(C'\fR form is used when this is the sole parameter,
-\&\f(CW\*(C`EV_P_\*(C'\fR is used when other parameters are following. Example:
+\&\f(CW\*(C`struct ev_loop *loop,\*(C'\fR is used when other parameters are following. Example:
 .Sp
 .Vb 2
 \&   // this is how ev_unref is being declared
-\&   static void ev_unref (EV_P);
+\&   static void ev_unref (struct ev_loop *loop);
 \&
 \&   // this is how you can declare your typical callback
-\&   static void cb (EV_P_ ev_timer *w, int revents)
+\&   static void cb (struct ev_loop *loop, ev_timer *w, int revents)
 .Ve
 .Sp
 It declares a parameter \f(CW\*(C`loop\*(C'\fR of type \f(CW\*(C`struct ev_loop *\*(C'\fR, quite
@@ -4445,7 +4445,7 @@ or not.
 .PP
 .Vb 5
 \&   static void
-\&   check_cb (EV_P_ ev_timer *w, int revents)
+\&   check_cb (struct ev_loop *loop, ev_timer *w, int revents)
 \&   {
 \&     ev_check_stop (EV_A_ w);
 \&   }

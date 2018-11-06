@@ -68,7 +68,7 @@
 #include <string.h>
 
 static void
-select_modify (EV_P_ int fd, int oev, int nev)
+select_modify (struct ev_loop *loop, int fd, int oev, int nev)
 {
   if (oev == nev)
     return;
@@ -137,7 +137,7 @@ select_modify (EV_P_ int fd, int oev, int nev)
 }
 
 static void
-select_poll (EV_P_ ev_tstamp timeout)
+select_poll (struct ev_loop *loop, ev_tstamp timeout)
 {
   struct timeval tv;
   int res;
@@ -273,7 +273,7 @@ select_poll (EV_P_ ev_tstamp timeout)
 
 static inline
 int
-select_init (EV_P_ int flags)
+select_init (struct ev_loop *loop, int flags)
 {
   backend_mintime = 1e-6;
   backend_modify  = select_modify;
@@ -303,7 +303,7 @@ select_init (EV_P_ int flags)
 
 static inline
 void
-select_destroy (EV_P)
+select_destroy (struct ev_loop *loop)
 {
   ev_free (vec_ri);
   ev_free (vec_ro);

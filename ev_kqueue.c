@@ -45,7 +45,7 @@
 
 static inline
 void
-kqueue_change (EV_P_ int fd, int filter, int flags, int fflags)
+kqueue_change (struct ev_loop *loop, int fd, int filter, int flags, int fflags)
 {
   ++kqueue_changecnt;
   array_needsize (struct kevent, kqueue_changes, kqueue_changemax, kqueue_changecnt, EMPTY2);
@@ -62,7 +62,7 @@ kqueue_change (EV_P_ int fd, int filter, int flags, int fflags)
 #endif
 
 static void
-kqueue_modify (EV_P_ int fd, int oev, int nev)
+kqueue_modify (struct ev_loop *loop, int fd, int oev, int nev)
 {
   if (oev != nev)
     {
@@ -84,7 +84,7 @@ kqueue_modify (EV_P_ int fd, int oev, int nev)
 }
 
 static void
-kqueue_poll (EV_P_ ev_tstamp timeout)
+kqueue_poll (struct ev_loop *loop, ev_tstamp timeout)
 {
   int res, i;
   struct timespec ts;
@@ -155,7 +155,7 @@ kqueue_poll (EV_P_ ev_tstamp timeout)
 
 inline_size
 int
-kqueue_init (EV_P_ int flags)
+kqueue_init (struct ev_loop *loop, int flags)
 {
   /* initialize the kernel queue */
   kqueue_fd_pid = getpid ();
@@ -180,7 +180,7 @@ kqueue_init (EV_P_ int flags)
 
 inline_size
 void
-kqueue_destroy (EV_P)
+kqueue_destroy (struct ev_loop *loop)
 {
   ev_free (kqueue_events);
   ev_free (kqueue_changes);
@@ -188,7 +188,7 @@ kqueue_destroy (EV_P)
 
 inline_size
 void
-kqueue_fork (EV_P)
+kqueue_fork (struct ev_loop *loop)
 {
   /* some BSD kernels don't just destroy the kqueue itself,
    * but also close the fd, which isn't documented, and

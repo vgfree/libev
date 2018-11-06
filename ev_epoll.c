@@ -68,7 +68,7 @@
 #define EV_EMASK_EPERM 0x80
 
 static void
-epoll_modify (EV_P_ int fd, int oev, int nev)
+epoll_modify (struct ev_loop *loop, int fd, int oev, int nev)
 {
   struct epoll_event ev;
   unsigned char oldmask;
@@ -139,7 +139,7 @@ dec_egen:
 }
 
 static void
-epoll_poll (EV_P_ ev_tstamp timeout)
+epoll_poll (struct ev_loop *loop, ev_tstamp timeout)
 {
   int i;
   int eventcnt;
@@ -237,7 +237,7 @@ epoll_poll (EV_P_ ev_tstamp timeout)
 
 static inline
 int
-epoll_init (EV_P_ int flags)
+epoll_init (struct ev_loop *loop, int flags)
 {
 #if defined EPOLL_CLOEXEC && !defined __ANDROID__
   backend_fd = epoll_create1 (EPOLL_CLOEXEC);
@@ -263,7 +263,7 @@ epoll_init (EV_P_ int flags)
 
 static inline
 void
-epoll_destroy (EV_P)
+epoll_destroy (struct ev_loop *loop)
 {
   ev_free (epoll_events);
   array_free (epoll_eperm, EMPTY);
@@ -271,7 +271,7 @@ epoll_destroy (EV_P)
 
 static inline
 void
-epoll_fork (EV_P)
+epoll_fork (struct ev_loop *loop)
 {
   close (backend_fd);
 

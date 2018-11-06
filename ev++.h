@@ -132,48 +132,32 @@ namespace ev {
 #  undef EV_AX_
 #endif
 
-#if EV_MULTIPLICITY
 #  define EV_AX  raw_loop
 #  define EV_AX_ raw_loop,
-#else
-#  define EV_AX
-#  define EV_AX_
-#endif
 
   struct loop_ref
   {
-    loop_ref (EV_P) throw ()
-#if EV_MULTIPLICITY
+    loop_ref (struct ev_loop *loop) throw ()
     : EV_AX (EV_A)
-#endif
     {
     }
 
     bool operator == (const loop_ref &other) const throw ()
     {
-#if EV_MULTIPLICITY
       return EV_AX == other.EV_AX;
-#else
-      return true;
-#endif
     }
 
     bool operator != (const loop_ref &other) const throw ()
     {
-#if EV_MULTIPLICITY
       return ! (*this == other);
-#else
-      return false;
-#endif
     }
 
-#if EV_MULTIPLICITY
-    bool operator == (const EV_P) const throw ()
+    bool operator == (const struct ev_loop *loop) const throw ()
     {
       return this->EV_AX == EV_A;
     }
 
-    bool operator != (const EV_P) const throw ()
+    bool operator != (const struct ev_loop *loop) const throw ()
     {
       return ! (*this == EV_A);
     }
@@ -192,7 +176,6 @@ namespace ev {
     {
       return EV_AX == ev_default_loop (0);
     }
-#endif
 
 #if EV_COMPAT3
     void loop (int flags = 0)
@@ -342,13 +325,10 @@ namespace ev {
       ev_feed_signal_event (EV_AX_ signum);
     }
 
-#if EV_MULTIPLICITY
     struct ev_loop* EV_AX;
-#endif
 
   };
 
-#if EV_MULTIPLICITY
   struct dynamic_loop : loop_ref
   {
 
@@ -372,21 +352,14 @@ namespace ev {
     dynamic_loop & operator= (const dynamic_loop &);
 
   };
-#endif
 
   struct default_loop : loop_ref
   {
     default_loop (unsigned int flags = AUTO) throw (bad_loop)
-#if EV_MULTIPLICITY
     : loop_ref (ev_default_loop (flags))
-#endif
     {
       if (
-#if EV_MULTIPLICITY
           !EV_AX
-#else
-          !ev_default_loop (flags)
-#endif
       )
         throw bad_loop ();
     }
@@ -398,11 +371,7 @@ namespace ev {
 
   inline loop_ref get_default_loop () throw ()
   {
-#if EV_MULTIPLICITY
     return ev_default_loop (0);
-#else
-    return loop_ref ();
-#endif
   }
 
 #undef EV_AX
@@ -410,36 +379,27 @@ namespace ev {
 
 #undef EV_PX
 #undef EV_PX_
-#if EV_MULTIPLICITY
 #  define EV_PX  loop_ref EV_A
 #  define EV_PX_ loop_ref EV_A_
-#else
-#  define EV_PX
-#  define EV_PX_
-#endif
 
   template<class ev_watcher, class watcher>
   struct base : ev_watcher
   {
-    #if EV_MULTIPLICITY
       EV_PX;
 
       // loop set
-      void set (EV_P) throw ()
+      void set (struct ev_loop *loop) throw ()
       {
         this->EV_A = EV_A;
       }
-    #endif
 
     base (EV_PX) throw ()
-    #if EV_MULTIPLICITY
       : EV_A (EV_A)
-    #endif
     {
       ev_init (this, 0);
     }
 
-    void set_ (const void *data, void (*cb)(EV_P_ ev_watcher *w, int revents)) throw ()
+    void set_ (const void *data, void (*cb)(struct ev_loop *loop, ev_watcher *w, int revents)) throw ()
     {
       this->data = (void *)data;
       ev_set_cb (static_cast<ev_watcher *>(this), cb);
@@ -453,7 +413,7 @@ namespace ev {
     }
 
     template<void (*function)(watcher &w, int)>
-    static void function_thunk (EV_P_ ev_watcher *w, int revents)
+    static void function_thunk (struct ev_loop *loop, ev_watcher *w, int revents)
     {
       function
         (*static_cast<watcher *>(w), revents);
@@ -474,7 +434,7 @@ namespace ev {
     }
 
     template<class K, void (K::*method)(watcher &w, int)>
-    static void method_thunk (EV_P_ ev_watcher *w, int revents)
+    static void method_thunk (struct ev_loop *loop, ev_watcher *w, int revents)
     {
       (static_cast<K *>(w->data)->*method)
         (*static_cast<watcher *>(w), revents);
@@ -488,7 +448,7 @@ namespace ev {
     }
 
     template<class K, void (K::*method)()>
-    static void method_noargs_thunk (EV_P_ ev_watcher *w, int revents)
+    static void method_noargs_thunk (struct ev_loop *loop, ev_watcher *w, int revents)
     {
       (static_cast<K *>(w->data)->*method)
         ();
@@ -517,7 +477,7 @@ namespace ev {
     }
   };
 
-  inline tstamp now (EV_P) throw ()
+  inline tstamp now (struct ev_loop *loop) throw ()
   {
     return ev_now (EV_A);
   }
@@ -562,18 +522,11 @@ namespace ev {
     ev_set_syserr_cb (cb);
   }
 
-  #if EV_MULTIPLICITY
     #define EV_CONSTRUCT(cppstem,cstem)	                                                \
       (EV_PX = get_default_loop ()) throw ()                                            \
         : base<ev_ ## cstem, cppstem> (EV_A)                                            \
       {                                                                                 \
       }
-  #else
-    #define EV_CONSTRUCT(cppstem,cstem)                                                 \
-      () throw ()                                                                       \
-      {                                                                                 \
-      }
-  #endif
 
   /* using a template here would require quite a few more lines,
    * so a macro solution was chosen */

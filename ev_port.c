@@ -57,7 +57,7 @@
 
 static inline
 void
-port_associate_and_check (EV_P_ int fd, int ev)
+port_associate_and_check (struct ev_loop *loop, int fd, int ev)
 {
   if (0 >
       port_associate (
@@ -76,7 +76,7 @@ port_associate_and_check (EV_P_ int fd, int ev)
 }
 
 static void
-port_modify (EV_P_ int fd, int oev, int nev)
+port_modify (struct ev_loop *loop, int fd, int oev, int nev)
 {
   /* we need to reassociate no matter what, as closes are
    * once more silently being discarded.
@@ -91,7 +91,7 @@ port_modify (EV_P_ int fd, int oev, int nev)
 }
 
 static void
-port_poll (EV_P_ ev_tstamp timeout)
+port_poll (struct ev_loop *loop, ev_tstamp timeout)
 {
   int res, i;
   struct timespec ts;
@@ -139,7 +139,7 @@ port_poll (EV_P_ ev_tstamp timeout)
 
 inline_size
 int
-port_init (EV_P_ int flags)
+port_init (struct ev_loop *loop, int flags)
 {
   /* Initialize the kernel queue */
   if ((backend_fd = port_create ()) < 0)
@@ -167,14 +167,14 @@ port_init (EV_P_ int flags)
 
 inline_size
 void
-port_destroy (EV_P)
+port_destroy (struct ev_loop *loop)
 {
   ev_free (port_events);
 }
 
 inline_size
 void
-port_fork (EV_P)
+port_fork (struct ev_loop *loop)
 {
   close (backend_fd);
 
