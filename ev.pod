@@ -28,10 +28,10 @@ libev - a high performance full-featured event loop written in C
      puts ("stdin ready");
      // for one-shot events, one must manually stop the watcher
      // with its corresponding stop function.
-     ev_io_stop (EV_A_ w);
+     ev_io_stop (loop, w);
 
      // this causes all nested ev_run's to stop iterating
-     ev_break (EV_A_ EVBREAK_ALL);
+     ev_break (loop, EVBREAK_ALL);
    }
 
    // another callback, this time for a time-out
@@ -40,7 +40,7 @@ libev - a high performance full-featured event loop written in C
    {
      puts ("timeout");
      // this causes the innermost ev_run to stop iterating
-     ev_break (EV_A_ EVBREAK_ONE);
+     ev_break (loop, EVBREAK_ONE);
    }
 
    int
@@ -1530,12 +1530,12 @@ other events are pending:
    {
      // stop the I/O watcher, we received the event, but
      // are not yet ready to handle it.
-     ev_io_stop (EV_A_ w);
+     ev_io_stop (loop, w);
 
      // start the idle watcher to handle the actual event.
      // it will not be executed as long as other watchers
      // with the default priority are receiving events.
-     ev_idle_start (EV_A_ &idle);
+     ev_idle_start (loop, &idle);
    }
 
    static void
@@ -1888,7 +1888,7 @@ within the callback:
    callback (struct ev_loop *loop, ev_timer *w, int revents)
    {
      // calculate when the timeout would happen
-     ev_tstamp after = last_activity - ev_now (EV_A) + timeout;
+     ev_tstamp after = last_activity - ev_now (loop) + timeout;
 
      // if negative, it means we the timeout already occurred
      if (after < 0.)
@@ -1902,14 +1902,14 @@ within the callback:
          // after "after" seconds, which is the earliest time
          // the timeout can occur.
          ev_timer_set (w, after, 0.);
-         ev_timer_start (EV_A_ w);
+         ev_timer_start (loop, w);
        }
    }
 
 To summarise the callback: first calculate in how many seconds the
 timeout will occur (by calculating the absolute time when it would occur,
 C<last_activity + timeout>, and subtracting the current time, C<ev_now
-(EV_A)> from that).
+(loop)> from that).
 
 If this value is negative, then we are already past the timeout, i.e. we
 timed out, and need to do whatever is needed in this case.
@@ -1930,23 +1930,23 @@ C<last_activity> to the current time (meaning there was some activity just
 now), then call the callback, which will "do the right thing" and start
 the timer:
 
-   last_activity = ev_now (EV_A);
+   last_activity = ev_now (loop);
    ev_init (&timer, callback);
-   callback (EV_A_ &timer, 0);
+   callback (loop, &timer, 0);
 
 When there is some activity, simply store the current time in
 C<last_activity>, no libev calls at all:
 
    if (activity detected)
-     last_activity = ev_now (EV_A);
+     last_activity = ev_now (loop);
 
 When your timeout value changes, then the timeout can be changed by simply
 providing a new value, stopping the timer and calling the callback, which
 will again do the right thing (for example, time out immediately :).
 
    timeout = new_value;
-   ev_timer_stop (EV_A_ &timer);
-   callback (EV_A_ &timer, 0);
+   ev_timer_stop (loop, &timer);
+   callback (loop, &timer, 0);
 
 This technique is slightly more complex, but in most cases where the
 time-out is unlikely to be triggered, much more efficient.
@@ -2595,7 +2595,7 @@ its completion.
    static void
    child_cb (struct ev_loop *loop, ev_child *w, int revents)
    {
-     ev_child_stop (EV_A_ w);
+     ev_child_stop (loop, w);
      printf ("process %d exited with status %x\n", w->rpid, w->rstatus);
    }
 
@@ -2822,7 +2822,7 @@ C<ev_timer> callback invocation).
    static void
    timer_cb (struct ev_loop *loop, ev_timer *w, int revents)
    {
-     ev_timer_stop (EV_A_ w);
+     ev_timer_stop (loop, w);
 
      /* now it's one second after the most recent passwd change */
    }
@@ -2831,7 +2831,7 @@ C<ev_timer> callback invocation).
    stat_cb (struct ev_loop *loop, ev_stat *w, int revents)
    {
      /* reset the one-second timer */
-     ev_timer_again (EV_A_ &timer);
+     ev_timer_again (loop, &timer);
    }
 
    ...
@@ -3078,7 +3078,7 @@ callbacks, and only destroy/create the watchers in the prepare watcher.
    timer_cb (struct ev_loop *loop, ev_timer *w, int revents)
    {
      adns_state ads = (adns_state)w->data;
-     update_now (EV_A);
+     update_now (loop);
 
      adns_processtimeouts (ads, &tv_now);
    }
@@ -3087,7 +3087,7 @@ callbacks, and only destroy/create the watchers in the prepare watcher.
    io_cb (struct ev_loop *loop, ev_io *w, int revents)
    {
      adns_state ads = (adns_state)w->data;
-     update_now (EV_A);
+     update_now (loop);
 
      if (revents & EV_READ ) adns_processreadable  (ads, w->fd, &tv_now);
      if (revents & EV_WRITE) adns_processwriteable (ads, w->fd, &tv_now);
@@ -3114,15 +3114,15 @@ libglib event loop.
        // create/start timer
 
      // poll
-     ev_run (EV_A_ 0);
+     ev_run (loop, 0);
 
      // stop timer again
      if (timeout >= 0)
-       ev_timer_stop (EV_A_ &to);
+       ev_timer_stop (loop, &to);
 
      // stop io watchers again - their callbacks should have set
      for (n = 0; n < nfds; ++n)
-       ev_io_stop (EV_A_ iow [n]);
+       ev_io_stop (loop, iow [n]);
 
      return got_events;
    }
@@ -3677,7 +3677,7 @@ example, or more sneakily, by reusing an existing (stopped) watcher and
 pushing it into the pending queue:
 
    ev_set_cb (watcher, callback);
-   ev_feed_event (EV_A_ watcher, 0);
+   ev_feed_event (loop, watcher, 0);
 
 This way, C<start_new_request> can safely return before the callback is
 invoked, while not delaying callback invocation too much.
@@ -3708,7 +3708,7 @@ triggered, using C<EVRUN_ONCE>:
    int exit_nested_loop = 0;
 
    while (!exit_nested_loop)
-     ev_run (EV_A_ EVRUN_ONCE);
+     ev_run (loop, EVRUN_ONCE);
 
 To exit from any of these loops, just set the corresponding exit variable:
 
@@ -3750,18 +3750,18 @@ First, you need to associate some data with the event loop:
       static userdata u;
 
       ev_async_init (&u->async_w, async_cb);
-      ev_async_start (EV_A_ &u->async_w);
+      ev_async_start (loop, &u->async_w);
 
       pthread_mutex_init (&u->lock, 0);
       pthread_cond_init (&u->invoke_cv, 0);
 
       // now associate this with the loop
-      ev_set_userdata (EV_A_ u);
-      ev_set_invoke_pending_cb (EV_A_ l_invoke);
-      ev_set_loop_release_cb (EV_A_ l_release, l_acquire);
+      ev_set_userdata (loop, u);
+      ev_set_invoke_pending_cb (loop, l_invoke);
+      ev_set_loop_release_cb (loop, l_release, l_acquire);
 
       // then create the thread running ev_run
-      pthread_create (&u->tid, 0, l_run, EV_A);
+      pthread_create (&u->tid, 0, l_run, loop);
    }
 
 The callback for the C<ev_async> watcher does nothing: the watcher is used
@@ -3780,14 +3780,14 @@ protecting the loop data, respectively.
    static void
    l_release (struct ev_loop *loop)
    {
-     userdata *u = ev_userdata (EV_A);
+     userdata *u = ev_userdata (loop);
      pthread_mutex_unlock (&u->lock);
    }
 
    static void
    l_acquire (struct ev_loop *loop)
    {
-     userdata *u = ev_userdata (EV_A);
+     userdata *u = ev_userdata (loop);
      pthread_mutex_lock (&u->lock);
    }
 
@@ -3799,10 +3799,10 @@ into C<ev_run>:
    {
      struct ev_loop *loop = (struct ev_loop *)thr_arg;
 
-     l_acquire (EV_A);
+     l_acquire (loop);
      pthread_setcanceltype (PTHREAD_CANCEL_ASYNCHRONOUS, 0);
-     ev_run (EV_A_ 0);
-     l_release (EV_A);
+     ev_run (loop, 0);
+     l_release (loop);
 
      return 0;
    }
@@ -3817,9 +3817,9 @@ watchers is very beneficial):
    static void
    l_invoke (struct ev_loop *loop)
    {
-     userdata *u = ev_userdata (EV_A);
+     userdata *u = ev_userdata (loop);
 
-     while (ev_pending_count (EV_A))
+     while (ev_pending_count (loop))
        {
          wake_up_other_thread_in_some_magic_or_not_so_magic_way ();
          pthread_cond_wait (&u->invoke_cv, &u->lock);
@@ -3833,10 +3833,10 @@ thread to continue:
    static void
    real_invoke_pending (struct ev_loop *loop)
    {
-     userdata *u = ev_userdata (EV_A);
+     userdata *u = ev_userdata (loop);
 
      pthread_mutex_lock (&u->lock);
-     ev_invoke_pending (EV_A);
+     ev_invoke_pending (loop);
      pthread_cond_signal (&u->invoke_cv);
      pthread_mutex_unlock (&u->lock);
    }
@@ -3845,13 +3845,13 @@ Whenever you want to start/stop a watcher or do other modifications to an
 event loop, you will now have to lock:
 
    ev_timer timeout_watcher;
-   userdata *u = ev_userdata (EV_A);
+   userdata *u = ev_userdata (loop);
 
    ev_timer_init (&timeout_watcher, timeout_cb, 5.5, 0.);
 
    pthread_mutex_lock (&u->lock);
-   ev_timer_start (EV_A_ &timeout_watcher);
-   ev_async_send (EV_A_ &u->async_w);
+   ev_timer_start (loop, &timeout_watcher);
+   ev_async_send (loop, &u->async_w);
    pthread_mutex_unlock (&u->lock);
 
 Note that sending the C<ev_async> watcher is required because otherwise
@@ -4277,15 +4277,15 @@ following macros are defined:
 
 =over 4
 
-=item C<EV_A>, C<EV_A_>
+=item C<loop>, C<loop,>
 
 This provides the loop I<argument> for functions, if one is required ("ev
-loop argument"). The C<EV_A> form is used when this is the sole argument,
-C<EV_A_> is used when other arguments are following. Example:
+loop argument"). The C<loop> form is used when this is the sole argument,
+C<loop,> is used when other arguments are following. Example:
 
-   ev_unref (EV_A);
-   ev_timer_add (EV_A_ watcher);
-   ev_run (EV_A_ 0);
+   ev_unref (loop);
+   ev_timer_add (loop, watcher);
+   ev_run (loop, 0);
 
 It assumes the variable C<loop> of type C<struct ev_loop *> is in scope,
 which is often provided by the following macro.
@@ -4303,7 +4303,7 @@ C<struct ev_loop *loop,> is used when other parameters are following. Example:
    static void cb (struct ev_loop *loop, ev_timer *w, int revents)
 
 It declares a parameter C<loop> of type C<struct ev_loop *>, quite
-suitable for use with C<EV_A>.
+suitable for use with C<loop>.
 
 =item C<EV_DEFAULT>, C<EV_DEFAULT_>
 
@@ -4333,7 +4333,7 @@ or not.
    static void
    check_cb (struct ev_loop *loop, ev_timer *w, int revents)
    {
-     ev_check_stop (EV_A_ w);
+     ev_check_stop (loop, w);
    }
 
    ev_check check;

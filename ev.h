@@ -234,7 +234,7 @@ enum {
 # define EV_CB_DECLARE(type) void (*cb)(struct ev_loop *loop, struct type *w, int revents);
 #endif
 #ifndef EV_CB_INVOKE
-# define EV_CB_INVOKE(watcher,revents) (watcher)->cb (EV_A_ (watcher), (revents))
+# define EV_CB_INVOKE(watcher,revents) (watcher)->cb (loop, (watcher), (revents))
 #endif
 
 /* not official, do not use */
@@ -555,7 +555,7 @@ ev_default_loop_uc_ (void) EV_THROW
 EV_INLINE int
 ev_is_default_loop (struct ev_loop *loop) EV_THROW
 {
-  return EV_A == EV_DEFAULT_UC;
+  return loop == EV_DEFAULT_UC;
 }
 
 /* create and destroy alternative loops that don't handle signals */
@@ -796,14 +796,14 @@ EV_API_DECL void ev_async_send     (struct ev_loop *loop, ev_async *w) EV_THROW;
   #define EVUNLOOP_ONE    EVBREAK_ONE
   #define EVUNLOOP_ALL    EVBREAK_ALL
   #if EV_PROTOTYPES
-    EV_INLINE void ev_loop   (struct ev_loop *loop, int flags) { ev_run   (EV_A_ flags); }
-    EV_INLINE void ev_unloop (struct ev_loop *loop, int how  ) { ev_break (EV_A_ how  ); }
+    EV_INLINE void ev_loop   (struct ev_loop *loop, int flags) { ev_run   (loop, flags); }
+    EV_INLINE void ev_unloop (struct ev_loop *loop, int how  ) { ev_break (loop, how  ); }
     EV_INLINE void ev_default_destroy (void) { ev_loop_destroy (EV_DEFAULT); }
     EV_INLINE void ev_default_fork    (void) { ev_loop_fork    (EV_DEFAULT); }
     #if EV_FEATURE_API
-      EV_INLINE unsigned int ev_loop_count  (struct ev_loop *loop) { return ev_iteration  (EV_A); }
-      EV_INLINE unsigned int ev_loop_depth  (struct ev_loop *loop) { return ev_depth      (EV_A); }
-      EV_INLINE void         ev_loop_verify (struct ev_loop *loop) {        ev_verify     (EV_A); }
+      EV_INLINE unsigned int ev_loop_count  (struct ev_loop *loop) { return ev_iteration  (loop); }
+      EV_INLINE unsigned int ev_loop_depth  (struct ev_loop *loop) { return ev_depth      (loop); }
+      EV_INLINE void         ev_loop_verify (struct ev_loop *loop) {        ev_verify     (loop); }
     #endif
   #endif
 #else

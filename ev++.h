@@ -138,7 +138,7 @@ namespace ev {
   struct loop_ref
   {
     loop_ref (struct ev_loop *loop) throw ()
-    : EV_AX (EV_A)
+    : EV_AX (loop)
     {
     }
 
@@ -154,12 +154,12 @@ namespace ev {
 
     bool operator == (const struct ev_loop *loop) const throw ()
     {
-      return this->EV_AX == EV_A;
+      return this->EV_AX == loop;
     }
 
     bool operator != (const struct ev_loop *loop) const throw ()
     {
-      return ! (*this == EV_A);
+      return ! (*this == loop);
     }
 
     operator struct ev_loop * () const throw ()
@@ -379,8 +379,8 @@ namespace ev {
 
 #undef EV_PX
 #undef EV_PX_
-#  define EV_PX  loop_ref EV_A
-#  define EV_PX_ loop_ref EV_A_
+#  define EV_PX  loop_ref loop
+#  define EV_PX_ loop_ref loop,
 
   template<class ev_watcher, class watcher>
   struct base : ev_watcher
@@ -390,11 +390,11 @@ namespace ev {
       // loop set
       void set (struct ev_loop *loop) throw ()
       {
-        this->EV_A = EV_A;
+        this->loop = loop;
       }
 
     base (EV_PX) throw ()
-      : EV_A (EV_A)
+      : loop (loop)
     {
       ev_init (this, 0);
     }
@@ -473,13 +473,13 @@ namespace ev {
 
     void feed_event (int revents) throw ()
     {
-      ev_feed_event (EV_A_ static_cast<ev_watcher *>(this), revents);
+      ev_feed_event (loop, static_cast<ev_watcher *>(this), revents);
     }
   };
 
   inline tstamp now (struct ev_loop *loop) throw ()
   {
-    return ev_now (EV_A);
+    return ev_now (loop);
   }
 
   inline void delay (tstamp interval) throw ()
@@ -524,7 +524,7 @@ namespace ev {
 
     #define EV_CONSTRUCT(cppstem,cstem)	                                                \
       (EV_PX = get_default_loop ()) throw ()                                            \
-        : base<ev_ ## cstem, cppstem> (EV_A)                                            \
+        : base<ev_ ## cstem, cppstem> (loop)                                            \
       {                                                                                 \
       }
 
@@ -536,12 +536,12 @@ namespace ev {
   {                                                                                     \
     void start () throw ()                                                              \
     {                                                                                   \
-      ev_ ## cstem ## _start (EV_A_ static_cast<ev_ ## cstem *>(this));                 \
+      ev_ ## cstem ## _start (loop, static_cast<ev_ ## cstem *>(this));                 \
     }                                                                                   \
                                                                                         \
     void stop () throw ()                                                               \
     {                                                                                   \
-      ev_ ## cstem ## _stop (EV_A_ static_cast<ev_ ## cstem *>(this));                  \
+      ev_ ## cstem ## _stop (loop, static_cast<ev_ ## cstem *>(this));                  \
     }                                                                                   \
                                                                                         \
     cppstem EV_CONSTRUCT(cppstem,cstem)                                                 \
@@ -605,12 +605,12 @@ namespace ev {
 
     void again () throw ()
     {
-      ev_timer_again (EV_A_ static_cast<ev_timer *>(this));
+      ev_timer_again (loop, static_cast<ev_timer *>(this));
     }
 
     ev_tstamp remaining ()
     {
-      return ev_timer_remaining (EV_A_ static_cast<ev_timer *>(this));
+      return ev_timer_remaining (loop, static_cast<ev_timer *>(this));
     }
   EV_END_WATCHER (timer, timer)
 
@@ -632,7 +632,7 @@ namespace ev {
 
     void again () throw ()
     {
-      ev_periodic_again (EV_A_ static_cast<ev_periodic *>(this));
+      ev_periodic_again (loop, static_cast<ev_periodic *>(this));
     }
   EV_END_WATCHER (periodic, periodic)
   #endif
@@ -692,7 +692,7 @@ namespace ev {
 
     void update () throw ()
     {
-      ev_stat_stat (EV_A_ static_cast<ev_stat *>(this));
+      ev_stat_stat (loop, static_cast<ev_stat *>(this));
     }
   EV_END_WATCHER (stat, stat)
   #endif
@@ -733,7 +733,7 @@ namespace ev {
 
     void sweep ()
     {
-      ev_embed_sweep (EV_A_ static_cast<ev_embed *>(this));
+      ev_embed_sweep (loop, static_cast<ev_embed *>(this));
     }
   EV_END_WATCHER (embed, embed)
   #endif
@@ -748,7 +748,7 @@ namespace ev {
   EV_BEGIN_WATCHER (async, async)
     void send () throw ()
     {
-      ev_async_send (EV_A_ static_cast<ev_async *>(this));
+      ev_async_send (loop, static_cast<ev_async *>(this));
     }
 
     bool async_pending () throw ()

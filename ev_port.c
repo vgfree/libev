@@ -69,7 +69,7 @@ port_associate_and_check (struct ev_loop *loop, int fd, int ev)
   )
     {
       if (errno == EBADFD)
-        fd_kill (EV_A_ fd);
+        fd_kill (loop, fd);
       else
         ev_syserr ("(libev) port_associate");
     }
@@ -87,7 +87,7 @@ port_modify (struct ev_loop *loop, int fd, int oev, int nev)
         port_dissociate (backend_fd, PORT_SOURCE_FD, fd);
     }
   else
-    port_associate_and_check (EV_A_ fd, nev);
+    port_associate_and_check (loop, fd, nev);
 }
 
 static void
@@ -119,13 +119,13 @@ port_poll (struct ev_loop *loop, ev_tstamp timeout)
           int fd = port_events [i].portev_object;
 
           fd_event (
-            EV_A_
+            loop,
             fd,
             (port_events [i].portev_events & (POLLOUT | POLLERR | POLLHUP) ? EV_WRITE : 0)
             | (port_events [i].portev_events & (POLLIN | POLLERR | POLLHUP) ? EV_READ : 0)
           );
 
-          fd_change (EV_A_ fd, EV__IOFDSET);
+          fd_change (loop, fd, EV__IOFDSET);
         }
     }
 
@@ -184,6 +184,6 @@ port_fork (struct ev_loop *loop)
   fcntl (backend_fd, F_SETFD, FD_CLOEXEC);
 
   /* re-register interest in fds */
-  fd_rearm_all (EV_A);
+  fd_rearm_all (loop);
 }
 

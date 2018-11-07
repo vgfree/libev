@@ -206,9 +206,9 @@ select_poll (struct ev_loop *loop, ev_tstamp timeout)
       #endif
 
       if (errno == EBADF)
-        fd_ebadf (EV_A);
+        fd_ebadf (loop);
       else if (errno == ENOMEM && !syserr_cb)
-        fd_enomem (EV_A);
+        fd_enomem (loop);
       else if (errno != EINTR)
         ev_syserr ("(libev) select");
 
@@ -237,7 +237,7 @@ select_poll (struct ev_loop *loop, ev_tstamp timeout)
           #endif
 
           if (expect_true (events))
-            fd_event (EV_A_ fd, events);
+            fd_event (loop, fd, events);
         }
   }
 
@@ -263,7 +263,7 @@ select_poll (struct ev_loop *loop, ev_tstamp timeout)
               events |= word_w & mask ? EV_WRITE : 0;
 
               if (expect_true (events))
-                fd_event (EV_A_ word * NFDBITS + bit, events);
+                fd_event (loop, word * NFDBITS + bit, events);
             }
       }
   }

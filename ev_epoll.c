@@ -131,7 +131,7 @@ epoll_modify (struct ev_loop *loop, int fd, int oev, int nev)
       return;
     }
 
-  fd_kill (EV_A_ fd);
+  fd_kill (loop, fd);
 
 dec_egen:
   /* we didn't successfully call epoll_ctl, so decrement the generation counter again */
@@ -208,7 +208,7 @@ epoll_poll (struct ev_loop *loop, ev_tstamp timeout)
             }
         }
 
-      fd_event (EV_A_ fd, got);
+      fd_event (loop, fd, got);
     }
 
   /* if the receive array was full, increase its size */
@@ -226,7 +226,7 @@ epoll_poll (struct ev_loop *loop, ev_tstamp timeout)
       unsigned char events = anfds [fd].events & (EV_READ | EV_WRITE);
 
       if (anfds [fd].emask & EV_EMASK_EPERM && events)
-        fd_event (EV_A_ fd, events);
+        fd_event (loop, fd, events);
       else
         {
           epoll_eperms [i] = epoll_eperms [--epoll_epermcnt];
@@ -280,6 +280,6 @@ epoll_fork (struct ev_loop *loop)
 
   fcntl (backend_fd, F_SETFD, FD_CLOEXEC);
 
-  fd_rearm_all (EV_A);
+  fd_rearm_all (loop);
 }
 

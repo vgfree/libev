@@ -99,9 +99,9 @@ poll_poll (struct ev_loop *loop, ev_tstamp timeout)
   if (expect_false (res < 0))
     {
       if (errno == EBADF)
-        fd_ebadf (EV_A);
+        fd_ebadf (loop);
       else if (errno == ENOMEM && !syserr_cb)
-        fd_enomem (EV_A);
+        fd_enomem (loop);
       else if (errno != EINTR)
         ev_syserr ("(libev) poll");
     }
@@ -115,10 +115,10 @@ poll_poll (struct ev_loop *loop, ev_tstamp timeout)
             --res;
 
             if (expect_false (p->revents & POLLNVAL))
-              fd_kill (EV_A_ p->fd);
+              fd_kill (loop, p->fd);
             else
               fd_event (
-                EV_A_
+                loop,
                 p->fd,
                 (p->revents & (POLLOUT | POLLERR | POLLHUP) ? EV_WRITE : 0)
                 | (p->revents & (POLLIN | POLLERR | POLLHUP) ? EV_READ : 0)

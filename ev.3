@@ -157,10 +157,10 @@ libev \- a high performance full\-featured event loop written in C
 \&     puts ("stdin ready");
 \&     // for one\-shot events, one must manually stop the watcher
 \&     // with its corresponding stop function.
-\&     ev_io_stop (EV_A_ w);
+\&     ev_io_stop (loop, w);
 \&
 \&     // this causes all nested ev_run\*(Aqs to stop iterating
-\&     ev_break (EV_A_ EVBREAK_ALL);
+\&     ev_break (loop, EVBREAK_ALL);
 \&   }
 \&
 \&   // another callback, this time for a time\-out
@@ -169,7 +169,7 @@ libev \- a high performance full\-featured event loop written in C
 \&   {
 \&     puts ("timeout");
 \&     // this causes the innermost ev_run to stop iterating
-\&     ev_break (EV_A_ EVBREAK_ONE);
+\&     ev_break (loop, EVBREAK_ONE);
 \&   }
 \&
 \&   int
@@ -1633,12 +1633,12 @@ other events are pending:
 \&   {
 \&     // stop the I/O watcher, we received the event, but
 \&     // are not yet ready to handle it.
-\&     ev_io_stop (EV_A_ w);
+\&     ev_io_stop (loop, w);
 \&
 \&     // start the idle watcher to handle the actual event.
 \&     // it will not be executed as long as other watchers
 \&     // with the default priority are receiving events.
-\&     ev_idle_start (EV_A_ &idle);
+\&     ev_idle_start (loop, &idle);
 \&   }
 \&
 \&   static void
@@ -2001,7 +2001,7 @@ within the callback:
 \&   callback (struct ev_loop *loop, ev_timer *w, int revents)
 \&   {
 \&     // calculate when the timeout would happen
-\&     ev_tstamp after = last_activity \- ev_now (EV_A) + timeout;
+\&     ev_tstamp after = last_activity \- ev_now (loop) + timeout;
 \&
 \&     // if negative, it means we the timeout already occurred
 \&     if (after < 0.)
@@ -2015,7 +2015,7 @@ within the callback:
 \&         // after "after" seconds, which is the earliest time
 \&         // the timeout can occur.
 \&         ev_timer_set (w, after, 0.);
-\&         ev_timer_start (EV_A_ w);
+\&         ev_timer_start (loop, w);
 \&       }
 \&   }
 .Ve
@@ -2023,7 +2023,7 @@ within the callback:
 To summarise the callback: first calculate in how many seconds the
 timeout will occur (by calculating the absolute time when it would occur,
 \&\f(CW\*(C`last_activity + timeout\*(C'\fR, and subtracting the current time, \f(CW\*(C`ev_now
-(EV_A)\*(C'\fR from that).
+(loop)\*(C'\fR from that).
 .Sp
 If this value is negative, then we are already past the timeout, i.e. we
 timed out, and need to do whatever is needed in this case.
@@ -2045,9 +2045,9 @@ now), then call the callback, which will \*(L"do the right thing\*(R" and start
 the timer:
 .Sp
 .Vb 3
-\&   last_activity = ev_now (EV_A);
+\&   last_activity = ev_now (loop);
 \&   ev_init (&timer, callback);
-\&   callback (EV_A_ &timer, 0);
+\&   callback (loop, &timer, 0);
 .Ve
 .Sp
 When there is some activity, simply store the current time in
@@ -2055,7 +2055,7 @@ When there is some activity, simply store the current time in
 .Sp
 .Vb 2
 \&   if (activity detected)
-\&     last_activity = ev_now (EV_A);
+\&     last_activity = ev_now (loop);
 .Ve
 .Sp
 When your timeout value changes, then the timeout can be changed by simply
@@ -2064,8 +2064,8 @@ will again do the right thing (for example, time out immediately :).
 .Sp
 .Vb 3
 \&   timeout = new_value;
-\&   ev_timer_stop (EV_A_ &timer);
-\&   callback (EV_A_ &timer, 0);
+\&   ev_timer_stop (loop, &timer);
+\&   callback (loop, &timer, 0);
 .Ve
 .Sp
 This technique is slightly more complex, but in most cases where the
@@ -2720,7 +2720,7 @@ its completion.
 \&   static void
 \&   child_cb (struct ev_loop *loop, ev_child *w, int revents)
 \&   {
-\&     ev_child_stop (EV_A_ w);
+\&     ev_child_stop (loop, w);
 \&     printf ("process %d exited with status %x\en", w\->rpid, w\->rstatus);
 \&   }
 \&
@@ -2948,7 +2948,7 @@ one might do the work both on \f(CW\*(C`ev_stat\*(C'\fR callback invocation \fIa
 \&   static void
 \&   timer_cb (struct ev_loop *loop, ev_timer *w, int revents)
 \&   {
-\&     ev_timer_stop (EV_A_ w);
+\&     ev_timer_stop (loop, w);
 \&
 \&     /* now it\*(Aqs one second after the most recent passwd change */
 \&   }
@@ -2957,7 +2957,7 @@ one might do the work both on \f(CW\*(C`ev_stat\*(C'\fR callback invocation \fIa
 \&   stat_cb (struct ev_loop *loop, ev_stat *w, int revents)
 \&   {
 \&     /* reset the one\-second timer */
-\&     ev_timer_again (EV_A_ &timer);
+\&     ev_timer_again (loop, &timer);
 \&   }
 \&
 \&   ...
@@ -3206,7 +3206,7 @@ callbacks, and only destroy/create the watchers in the prepare watcher.
 \&   timer_cb (struct ev_loop *loop, ev_timer *w, int revents)
 \&   {
 \&     adns_state ads = (adns_state)w\->data;
-\&     update_now (EV_A);
+\&     update_now (loop);
 \&
 \&     adns_processtimeouts (ads, &tv_now);
 \&   }
@@ -3215,7 +3215,7 @@ callbacks, and only destroy/create the watchers in the prepare watcher.
 \&   io_cb (struct ev_loop *loop, ev_io *w, int revents)
 \&   {
 \&     adns_state ads = (adns_state)w\->data;
-\&     update_now (EV_A);
+\&     update_now (loop);
 \&
 \&     if (revents & EV_READ ) adns_processreadable  (ads, w\->fd, &tv_now);
 \&     if (revents & EV_WRITE) adns_processwriteable (ads, w\->fd, &tv_now);
@@ -3244,15 +3244,15 @@ libglib event loop.
 \&       // create/start timer
 \&
 \&     // poll
-\&     ev_run (EV_A_ 0);
+\&     ev_run (loop, 0);
 \&
 \&     // stop timer again
 \&     if (timeout >= 0)
-\&       ev_timer_stop (EV_A_ &to);
+\&       ev_timer_stop (loop, &to);
 \&
 \&     // stop io watchers again \- their callbacks should have set
 \&     for (n = 0; n < nfds; ++n)
-\&       ev_io_stop (EV_A_ iow [n]);
+\&       ev_io_stop (loop, iow [n]);
 \&
 \&     return got_events;
 \&   }
@@ -3792,7 +3792,7 @@ pushing it into the pending queue:
 .PP
 .Vb 2
 \&   ev_set_cb (watcher, callback);
-\&   ev_feed_event (EV_A_ watcher, 0);
+\&   ev_feed_event (loop, watcher, 0);
 .Ve
 .PP
 This way, \f(CW\*(C`start_new_request\*(C'\fR can safely return before the callback is
@@ -3824,7 +3824,7 @@ triggered, using \f(CW\*(C`EVRUN_ONCE\*(C'\fR:
 \&   int exit_nested_loop = 0;
 \&
 \&   while (!exit_nested_loop)
-\&     ev_run (EV_A_ EVRUN_ONCE);
+\&     ev_run (loop, EVRUN_ONCE);
 .Ve
 .PP
 To exit from any of these loops, just set the corresponding exit variable:
@@ -3869,18 +3869,18 @@ First, you need to associate some data with the event loop:
 \&      static userdata u;
 \&
 \&      ev_async_init (&u\->async_w, async_cb);
-\&      ev_async_start (EV_A_ &u\->async_w);
+\&      ev_async_start (loop, &u\->async_w);
 \&
 \&      pthread_mutex_init (&u\->lock, 0);
 \&      pthread_cond_init (&u\->invoke_cv, 0);
 \&
 \&      // now associate this with the loop
-\&      ev_set_userdata (EV_A_ u);
-\&      ev_set_invoke_pending_cb (EV_A_ l_invoke);
-\&      ev_set_loop_release_cb (EV_A_ l_release, l_acquire);
+\&      ev_set_userdata (loop, u);
+\&      ev_set_invoke_pending_cb (loop, l_invoke);
+\&      ev_set_loop_release_cb (loop, l_release, l_acquire);
 \&
 \&      // then create the thread running ev_run
-\&      pthread_create (&u\->tid, 0, l_run, EV_A);
+\&      pthread_create (&u\->tid, 0, l_run, loop);
 \&   }
 .Ve
 .PP
@@ -3903,14 +3903,14 @@ protecting the loop data, respectively.
 \&   static void
 \&   l_release (struct ev_loop *loop)
 \&   {
-\&     userdata *u = ev_userdata (EV_A);
+\&     userdata *u = ev_userdata (loop);
 \&     pthread_mutex_unlock (&u\->lock);
 \&   }
 \&
 \&   static void
 \&   l_acquire (struct ev_loop *loop)
 \&   {
-\&     userdata *u = ev_userdata (EV_A);
+\&     userdata *u = ev_userdata (loop);
 \&     pthread_mutex_lock (&u\->lock);
 \&   }
 .Ve
@@ -3924,10 +3924,10 @@ into \f(CW\*(C`ev_run\*(C'\fR:
 \&   {
 \&     struct ev_loop *loop = (struct ev_loop *)thr_arg;
 \&
-\&     l_acquire (EV_A);
+\&     l_acquire (loop);
 \&     pthread_setcanceltype (PTHREAD_CANCEL_ASYNCHRONOUS, 0);
-\&     ev_run (EV_A_ 0);
-\&     l_release (EV_A);
+\&     ev_run (loop, 0);
+\&     l_release (loop);
 \&
 \&     return 0;
 \&   }
@@ -3944,9 +3944,9 @@ watchers is very beneficial):
 \&   static void
 \&   l_invoke (struct ev_loop *loop)
 \&   {
-\&     userdata *u = ev_userdata (EV_A);
+\&     userdata *u = ev_userdata (loop);
 \&
-\&     while (ev_pending_count (EV_A))
+\&     while (ev_pending_count (loop))
 \&       {
 \&         wake_up_other_thread_in_some_magic_or_not_so_magic_way ();
 \&         pthread_cond_wait (&u\->invoke_cv, &u\->lock);
@@ -3962,10 +3962,10 @@ thread to continue:
 \&   static void
 \&   real_invoke_pending (struct ev_loop *loop)
 \&   {
-\&     userdata *u = ev_userdata (EV_A);
+\&     userdata *u = ev_userdata (loop);
 \&
 \&     pthread_mutex_lock (&u\->lock);
-\&     ev_invoke_pending (EV_A);
+\&     ev_invoke_pending (loop);
 \&     pthread_cond_signal (&u\->invoke_cv);
 \&     pthread_mutex_unlock (&u\->lock);
 \&   }
@@ -3976,13 +3976,13 @@ event loop, you will now have to lock:
 .PP
 .Vb 2
 \&   ev_timer timeout_watcher;
-\&   userdata *u = ev_userdata (EV_A);
+\&   userdata *u = ev_userdata (loop);
 \&
 \&   ev_timer_init (&timeout_watcher, timeout_cb, 5.5, 0.);
 \&
 \&   pthread_mutex_lock (&u\->lock);
-\&   ev_timer_start (EV_A_ &timeout_watcher);
-\&   ev_async_send (EV_A_ &u\->async_w);
+\&   ev_timer_start (loop, &timeout_watcher);
+\&   ev_async_send (loop, &u\->async_w);
 \&   pthread_mutex_unlock (&u\->lock);
 .Ve
 .PP
@@ -4387,17 +4387,17 @@ functions and callbacks have an initial \f(CW\*(C`struct ev_loop *\*(C'\fR argum
 .PP
 To make it easier to write programs that cope with either variant, the
 following macros are defined:
-.ie n .IP """EV_A"", ""EV_A_""" 4
-.el .IP "\f(CWEV_A\fR, \f(CWEV_A_\fR" 4
-.IX Item "EV_A, EV_A_"
+.ie n .IP """loop"", ""loop,""" 4
+.el .IP "\f(CWEV_A\fR, \f(CWloop,\fR" 4
+.IX Item "loop, loop,"
 This provides the loop \fIargument\fR for functions, if one is required (\*(L"ev
-loop argument\*(R"). The \f(CW\*(C`EV_A\*(C'\fR form is used when this is the sole argument,
-\&\f(CW\*(C`EV_A_\*(C'\fR is used when other arguments are following. Example:
+loop argument\*(R"). The \f(CW\*(C`loop\*(C'\fR form is used when this is the sole argument,
+\&\f(CW\*(C`loop,\*(C'\fR is used when other arguments are following. Example:
 .Sp
 .Vb 3
-\&   ev_unref (EV_A);
-\&   ev_timer_add (EV_A_ watcher);
-\&   ev_run (EV_A_ 0);
+\&   ev_unref (loop);
+\&   ev_timer_add (loop, watcher);
+\&   ev_run (loop, 0);
 .Ve
 .Sp
 It assumes the variable \f(CW\*(C`loop\*(C'\fR of type \f(CW\*(C`struct ev_loop *\*(C'\fR is in scope,
@@ -4418,7 +4418,7 @@ loop parameter\*(R"). The \f(CW\*(C`EV_P\*(C'\fR form is used when this is the s
 .Ve
 .Sp
 It declares a parameter \f(CW\*(C`loop\*(C'\fR of type \f(CW\*(C`struct ev_loop *\*(C'\fR, quite
-suitable for use with \f(CW\*(C`EV_A\*(C'\fR.
+suitable for use with \f(CW\*(C`loop\*(C'\fR.
 .ie n .IP """EV_DEFAULT"", ""EV_DEFAULT_""" 4
 .el .IP "\f(CWEV_DEFAULT\fR, \f(CWEV_DEFAULT_\fR" 4
 .IX Item "EV_DEFAULT, EV_DEFAULT_"
@@ -4447,7 +4447,7 @@ or not.
 \&   static void
 \&   check_cb (struct ev_loop *loop, ev_timer *w, int revents)
 \&   {
-\&     ev_check_stop (EV_A_ w);
+\&     ev_check_stop (loop, w);
 \&   }
 \&
 \&   ev_check check;
