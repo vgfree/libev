@@ -448,7 +448,7 @@ Revision history for libev, a high-performance and full-featured event loop.
 	- added linux eventfd support.
         - try to autodetect epoll and inotify support
           by libc header version if not using autoconf.
-        - new symbols: EV_DEFAULT_UC and EV_DEFAULT_UC_.
+        - new symbols: ev_default_loop_uc_ () and ev_default_loop_uc_ (),.
         - declare functions defined in ev.h as inline if
           C99 or gcc are available.
         - enable inlining with gcc versions 2 and 3.

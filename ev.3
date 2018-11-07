@@ -176,7 +176,7 @@ libev \- a high performance full\-featured event loop written in C
 \&   main (void)
 \&   {
 \&     // use the default event loop unless you have special needs
-\&     struct ev_loop *loop = EV_DEFAULT;
+\&     struct ev_loop *loop = ev_default_loop (0);
 \&
 \&     // initialise an io watcher, then start it
 \&     // this one will watch for stdin to become readable
@@ -464,7 +464,7 @@ flags, which should almost always be \f(CW0\fR, unless the caller is also the
 one calling \f(CW\*(C`ev_run\*(C'\fR or otherwise qualifies as \*(L"the main program\*(R".
 .Sp
 If you don't know what event loop to use, use the one returned from this
-function (or via the \f(CW\*(C`EV_DEFAULT\*(C'\fR macro).
+function (or via the \f(CW\*(C`ev_default_loop (0)\*(C'\fR macro).
 .Sp
 Note that this function is \fInot\fR thread-safe, so if you want to use it
 from multiple threads, you have to employ some kind of mutex (note also
@@ -831,7 +831,7 @@ using pthreads.
 \&   static void
 \&   post_fork_child (void)
 \&   {
-\&     ev_loop_fork (EV_DEFAULT);
+\&     ev_loop_fork (ev_default_loop (0));
 \&   }
 \&
 \&   ...
@@ -1119,8 +1119,8 @@ Example: we only need 0.1s timeout granularity, and we wish not to poll
 more often than 100 times per second:
 .Sp
 .Vb 2
-\&   ev_set_timeout_collect_interval (EV_DEFAULT_UC_ 0.1);
-\&   ev_set_io_collect_interval (EV_DEFAULT_UC_ 0.01);
+\&   ev_set_timeout_collect_interval (ev_default_loop_uc_ (), 0.1);
+\&   ev_set_io_collect_interval (ev_default_loop_uc_ (), 0.01);
 .Ve
 .IP "ev_invoke_pending (loop)" 4
 .IX Item "ev_invoke_pending (loop)"
@@ -1416,7 +1416,7 @@ Example: Start the \f(CW\*(C`ev_io\*(C'\fR watcher that is being abused as examp
 whole section.
 .Sp
 .Vb 1
-\&   ev_io_start (EV_DEFAULT_UC, &w);
+\&   ev_io_start (ev_default_loop_uc_ (), &w);
 .Ve
 .ie n .IP """ev_TYPE_stop"" (loop, ev_TYPE *watcher)" 4
 .el .IP "\f(CWev_TYPE_stop\fR (loop, ev_TYPE *watcher)" 4
@@ -1655,7 +1655,7 @@ other events are pending:
 \&   // initialisation
 \&   ev_idle_init (&idle, idle_cb);
 \&   ev_io_init (&io, io_cb, STDIN_FILENO, EV_READ);
-\&   ev_io_start (EV_DEFAULT_ &io);
+\&   ev_io_start (ev_default_loop (0), &io);
 .Ve
 .PP
 In the \*(L"real\*(R" world, it might also be beneficial to start a timer, so that
@@ -2736,7 +2736,7 @@ its completion.
 \&   else
 \&     {
 \&       ev_child_init (&cw, child_cb, pid, 0);
-\&       ev_child_start (EV_DEFAULT_ &cw);
+\&       ev_child_start (ev_default_loop (0), &cw);
 \&     }
 .Ve
 .ie n .SS """ev_stat"" \- did the file attributes just change?"
@@ -3430,7 +3430,7 @@ signal watchers).
 .PP
 When this is not possible, or you want to use the default loop for
 other reasons, then in the process that wants to start \*(L"fresh\*(R", call
-\&\f(CW\*(C`ev_loop_destroy (EV_DEFAULT)\*(C'\fR followed by \f(CW\*(C`ev_default_loop (...)\*(C'\fR.
+\&\f(CW\*(C`ev_loop_destroy (ev_default_loop (0))\*(C'\fR followed by \f(CW\*(C`ev_default_loop (...)\*(C'\fR.
 Destroying the default loop will \*(L"orphan\*(R" (not stop) all registered
 watchers, so you have to be careful not to execute code that modifies
 those watchers. Note also that in that case, you have to re-register any
@@ -3474,7 +3474,7 @@ cleanup functions are called.
 \&   static void
 \&   program_exits (void)
 \&   {
-\&     ev_loop_destroy (EV_DEFAULT_UC);
+\&     ev_loop_destroy (ev_default_loop_uc_ ());
 \&   }
 \&
 \&   ...
@@ -3528,7 +3528,7 @@ an example that does that for some fictitious \s-1SIGUSR1\s0 handler:
 \&
 \&     // no locking etc.
 \&     queue_put (data);
-\&     ev_async_send (EV_DEFAULT_ &mysig);
+\&     ev_async_send (ev_default_loop (0), &mysig);
 \&   }
 \&
 \&   static void
@@ -3570,7 +3570,7 @@ employ a traditional mutex lock, such as in this pthread example:
 \&     queue_put (data);
 \&     pthread_mutex_unlock (&mymutex);
 \&
-\&     ev_async_send (EV_DEFAULT_ &mysig);
+\&     ev_async_send (ev_default_loop (0), &mysig);
 \&   }
 \&
 \&   static void
@@ -3818,7 +3818,7 @@ triggered, using \f(CW\*(C`EVRUN_ONCE\*(C'\fR:
 \&   int exit_main_loop = 0;
 \&
 \&   while (!exit_main_loop)
-\&     ev_run (EV_DEFAULT_ EVRUN_ONCE);
+\&     ev_run (ev_default_loop (0), EVRUN_ONCE);
 \&
 \&   // in a modal watcher
 \&   int exit_nested_loop = 0;
@@ -4178,7 +4178,7 @@ All of those classes have these methods:
 .IX Item "ev::TYPE::~TYPE"
 .PD
 The constructor (optionally) takes an event loop to associate the watcher
-with. If it is omitted, it will use \f(CW\*(C`EV_DEFAULT\*(C'\fR.
+with. If it is omitted, it will use \f(CW\*(C`ev_default_loop (0)\*(C'\fR.
 .Sp
 The constructor calls \f(CW\*(C`ev_init\*(C'\fR for you, which means you have to call the
 \&\f(CW\*(C`set\*(C'\fR method before starting it.
@@ -4419,25 +4419,25 @@ loop parameter\*(R"). The \f(CW\*(C`EV_P\*(C'\fR form is used when this is the s
 .Sp
 It declares a parameter \f(CW\*(C`loop\*(C'\fR of type \f(CW\*(C`struct ev_loop *\*(C'\fR, quite
 suitable for use with \f(CW\*(C`loop\*(C'\fR.
-.ie n .IP """EV_DEFAULT"", ""EV_DEFAULT_""" 4
-.el .IP "\f(CWEV_DEFAULT\fR, \f(CWEV_DEFAULT_\fR" 4
-.IX Item "EV_DEFAULT, EV_DEFAULT_"
+.ie n .IP """ev_default_loop (0)"", ""ev_default_loop (0),""" 4
+.el .IP "\f(CWev_default_loop (0)\fR, \f(CWev_default_loop (0),\fR" 4
+.IX Item "ev_default_loop (0), ev_default_loop (0),"
 Similar to the other two macros, this gives you the value of the default
 loop, if multiple loops are supported (\*(L"ev loop default\*(R"). The default loop
 will be initialised if it isn't already initialised.
 .Sp
 For non-multiplicity builds, these macros do nothing, so you always have
 to initialise the loop somewhere.
-.ie n .IP """EV_DEFAULT_UC"", ""EV_DEFAULT_UC_""" 4
-.el .IP "\f(CWEV_DEFAULT_UC\fR, \f(CWEV_DEFAULT_UC_\fR" 4
-.IX Item "EV_DEFAULT_UC, EV_DEFAULT_UC_"
-Usage identical to \f(CW\*(C`EV_DEFAULT\*(C'\fR and \f(CW\*(C`EV_DEFAULT_\*(C'\fR, but requires that the
+.ie n .IP """ev_default_loop_uc_ ()"", ""ev_default_loop_uc_ (),""" 4
+.el .IP "\f(CWev_default_loop_uc_ ()\fR, \f(CWev_default_loop_uc_ (),\fR" 4
+.IX Item "ev_default_loop_uc_ (), ev_default_loop_uc_ (),"
+Usage identical to \f(CW\*(C`ev_default_loop (0)\*(C'\fR and \f(CW\*(C`ev_default_loop (0),\*(C'\fR, but requires that the
 default loop has been initialised (\f(CW\*(C`UC\*(C'\fR == unchecked). Their behaviour
 is undefined when the default loop has not been initialised by a previous
-execution of \f(CW\*(C`EV_DEFAULT\*(C'\fR, \f(CW\*(C`EV_DEFAULT_\*(C'\fR or \f(CW\*(C`ev_default_init (...)\*(C'\fR.
+execution of \f(CW\*(C`ev_default_loop (0)\*(C'\fR, \f(CW\*(C`ev_default_loop (0),\*(C'\fR or \f(CW\*(C`ev_default_init (...)\*(C'\fR.
 .Sp
-It is often prudent to use \f(CW\*(C`EV_DEFAULT\*(C'\fR when initialising the first
-watcher in a function but use \f(CW\*(C`EV_DEFAULT_UC\*(C'\fR afterwards.
+It is often prudent to use \f(CW\*(C`ev_default_loop (0)\*(C'\fR when initialising the first
+watcher in a function but use \f(CW\*(C`ev_default_loop_uc_ ()\*(C'\fR afterwards.
 .PP
 Example: Declare and initialise a check watcher, utilising the above
 macros so it will work regardless of whether multiple loops are supported
@@ -4452,8 +4452,8 @@ or not.
 \&
 \&   ev_check check;
 \&   ev_check_init (&check, check_cb);
-\&   ev_check_start (EV_DEFAULT_ &check);
-\&   ev_run (EV_DEFAULT_ 0);
+\&   ev_check_start (ev_default_loop (0), &check);
+\&   ev_run (ev_default_loop (0), 0);
 .Ve
 .SH "EMBEDDING"
 .IX Header "EMBEDDING"
@@ -4778,7 +4778,7 @@ additional independent event loops. Otherwise there will be no support
 for multiple event loops and there is no first event loop pointer
 argument. Instead, all functions act on the single default loop.
 .Sp
-Note that \f(CW\*(C`EV_DEFAULT\*(C'\fR and \f(CW\*(C`EV_DEFAULT_\*(C'\fR will no longer provide a
+Note that \f(CW\*(C`ev_default_loop (0)\*(C'\fR and \f(CW\*(C`ev_default_loop (0),\*(C'\fR will no longer provide a
 default loop when multiplicity is switched off \- you always have to
 initialise the loop manually in this case.
 .IP "\s-1EV_MINPRI\s0" 4
@@ -5530,8 +5530,8 @@ section.
 These calls can be replaced easily by their \f(CW\*(C`ev_loop_xxx\*(C'\fR counterparts:
 .Sp
 .Vb 2
-\&   ev_loop_destroy (EV_DEFAULT_UC);
-\&   ev_loop_fork (EV_DEFAULT);
+\&   ev_loop_destroy (ev_default_loop_uc_ ());
+\&   ev_loop_fork (ev_default_loop (0));
 .Ve
 .IP "function/symbol renames" 4
 .IX Item "function/symbol renames"

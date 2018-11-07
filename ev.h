@@ -555,7 +555,7 @@ ev_default_loop_uc_ (void) EV_THROW
 EV_INLINE int
 ev_is_default_loop (struct ev_loop *loop) EV_THROW
 {
-  return loop == EV_DEFAULT_UC;
+  return loop == ev_default_loop_uc_ ();
 }
 
 /* create and destroy alternative loops that don't handle signals */
@@ -798,8 +798,8 @@ EV_API_DECL void ev_async_send     (struct ev_loop *loop, ev_async *w) EV_THROW;
   #if EV_PROTOTYPES
     EV_INLINE void ev_loop   (struct ev_loop *loop, int flags) { ev_run   (loop, flags); }
     EV_INLINE void ev_unloop (struct ev_loop *loop, int how  ) { ev_break (loop, how  ); }
-    EV_INLINE void ev_default_destroy (void) { ev_loop_destroy (EV_DEFAULT); }
-    EV_INLINE void ev_default_fork    (void) { ev_loop_fork    (EV_DEFAULT); }
+    EV_INLINE void ev_default_destroy (void) { ev_loop_destroy (ev_default_loop (0)); }
+    EV_INLINE void ev_default_fork    (void) { ev_loop_fork    (ev_default_loop (0)); }
     #if EV_FEATURE_API
       EV_INLINE unsigned int ev_loop_count  (struct ev_loop *loop) { return ev_iteration  (loop); }
       EV_INLINE unsigned int ev_loop_depth  (struct ev_loop *loop) { return ev_depth      (loop); }

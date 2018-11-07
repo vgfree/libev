@@ -47,7 +47,7 @@ libev - a high performance full-featured event loop written in C
    main (void)
    {
      // use the default event loop unless you have special needs
-     struct ev_loop *loop = EV_DEFAULT;
+     struct ev_loop *loop = ev_default_loop (0);
 
      // initialise an io watcher, then start it
      // this one will watch for stdin to become readable
@@ -350,7 +350,7 @@ flags, which should almost always be C<0>, unless the caller is also the
 one calling C<ev_run> or otherwise qualifies as "the main program".
 
 If you don't know what event loop to use, use the one returned from this
-function (or via the C<EV_DEFAULT> macro).
+function (or via the C<ev_default_loop (0)> macro).
 
 Note that this function is I<not> thread-safe, so if you want to use it
 from multiple threads, you have to employ some kind of mutex (note also
@@ -716,7 +716,7 @@ using pthreads.
    static void
    post_fork_child (void)
    {
-     ev_loop_fork (EV_DEFAULT);
+     ev_loop_fork (ev_default_loop (0));
    }
 
    ...
@@ -999,8 +999,8 @@ they fire on, say, one-second boundaries only.
 Example: we only need 0.1s timeout granularity, and we wish not to poll
 more often than 100 times per second:
 
-   ev_set_timeout_collect_interval (EV_DEFAULT_UC_ 0.1);
-   ev_set_io_collect_interval (EV_DEFAULT_UC_ 0.01);
+   ev_set_timeout_collect_interval (ev_default_loop_uc_ (), 0.1);
+   ev_set_io_collect_interval (ev_default_loop_uc_ (), 0.01);
 
 =item ev_invoke_pending (loop)
 
@@ -1297,7 +1297,7 @@ events. If the watcher is already active nothing will happen.
 Example: Start the C<ev_io> watcher that is being abused as example in this
 whole section.
 
-   ev_io_start (EV_DEFAULT_UC, &w);
+   ev_io_start (ev_default_loop_uc_ (), &w);
 
 =item C<ev_TYPE_stop> (loop, ev_TYPE *watcher)
 
@@ -1552,7 +1552,7 @@ other events are pending:
    // initialisation
    ev_idle_init (&idle, idle_cb);
    ev_io_init (&io, io_cb, STDIN_FILENO, EV_READ);
-   ev_io_start (EV_DEFAULT_ &io);
+   ev_io_start (ev_default_loop (0), &io);
 
 In the "real" world, it might also be beneficial to start a timer, so that
 low-priority connections can not be locked out forever under load. This
@@ -2611,7 +2611,7 @@ its completion.
    else
      {
        ev_child_init (&cw, child_cb, pid, 0);
-       ev_child_start (EV_DEFAULT_ &cw);
+       ev_child_start (ev_default_loop (0), &cw);
      }
 
 
@@ -3298,7 +3298,7 @@ signal watchers).
 
 When this is not possible, or you want to use the default loop for
 other reasons, then in the process that wants to start "fresh", call
-C<ev_loop_destroy (EV_DEFAULT)> followed by C<ev_default_loop (...)>.
+C<ev_loop_destroy (ev_default_loop (0))> followed by C<ev_default_loop (...)>.
 Destroying the default loop will "orphan" (not stop) all registered
 watchers, so you have to be careful not to execute code that modifies
 those watchers. Note also that in that case, you have to re-register any
@@ -3350,7 +3350,7 @@ cleanup functions are called.
    static void
    program_exits (void)
    {
-     ev_loop_destroy (EV_DEFAULT_UC);
+     ev_loop_destroy (ev_default_loop_uc_ ());
    }
 
    ...
@@ -3405,7 +3405,7 @@ an example that does that for some fictitious SIGUSR1 handler:
 
      // no locking etc.
      queue_put (data);
-     ev_async_send (EV_DEFAULT_ &mysig);
+     ev_async_send (ev_default_loop (0), &mysig);
    }
 
    static void
@@ -3446,7 +3446,7 @@ employ a traditional mutex lock, such as in this pthread example:
      queue_put (data);
      pthread_mutex_unlock (&mymutex);
 
-     ev_async_send (EV_DEFAULT_ &mysig);
+     ev_async_send (ev_default_loop (0), &mysig);
    }
 
    static void
@@ -3702,7 +3702,7 @@ triggered, using C<EVRUN_ONCE>:
    int exit_main_loop = 0;
 
    while (!exit_main_loop)
-     ev_run (EV_DEFAULT_ EVRUN_ONCE);
+     ev_run (ev_default_loop (0), EVRUN_ONCE);
 
    // in a modal watcher
    int exit_nested_loop = 0;
@@ -4047,7 +4047,7 @@ All of those classes have these methods:
 =item ev::TYPE::~TYPE
 
 The constructor (optionally) takes an event loop to associate the watcher
-with. If it is omitted, it will use C<EV_DEFAULT>.
+with. If it is omitted, it will use C<ev_default_loop (0)>.
 
 The constructor calls C<ev_init> for you, which means you have to call the
 C<set> method before starting it.
@@ -4305,7 +4305,7 @@ C<struct ev_loop *loop,> is used when other parameters are following. Example:
 It declares a parameter C<loop> of type C<struct ev_loop *>, quite
 suitable for use with C<loop>.
 
-=item C<EV_DEFAULT>, C<EV_DEFAULT_>
+=item C<ev_default_loop (0)>, C<ev_default_loop (0),>
 
 Similar to the other two macros, this gives you the value of the default
 loop, if multiple loops are supported ("ev loop default"). The default loop
@@ -4314,15 +4314,15 @@ will be initialised if it isn't already initialised.
 For non-multiplicity builds, these macros do nothing, so you always have
 to initialise the loop somewhere.
 
-=item C<EV_DEFAULT_UC>, C<EV_DEFAULT_UC_>
+=item C<ev_default_loop_uc_ ()>, C<ev_default_loop_uc_ (),>
 
-Usage identical to C<EV_DEFAULT> and C<EV_DEFAULT_>, but requires that the
+Usage identical to C<ev_default_loop (0)> and C<ev_default_loop (0),>, but requires that the
 default loop has been initialised (C<UC> == unchecked). Their behaviour
 is undefined when the default loop has not been initialised by a previous
-execution of C<EV_DEFAULT>, C<EV_DEFAULT_> or C<ev_default_init (...)>.
+execution of C<ev_default_loop (0)>, C<ev_default_loop (0),> or C<ev_default_init (...)>.
 
-It is often prudent to use C<EV_DEFAULT> when initialising the first
-watcher in a function but use C<EV_DEFAULT_UC> afterwards.
+It is often prudent to use C<ev_default_loop (0)> when initialising the first
+watcher in a function but use C<ev_default_loop_uc_ ()> afterwards.
 
 =back
 
@@ -4338,8 +4338,8 @@ or not.
 
    ev_check check;
    ev_check_init (&check, check_cb);
-   ev_check_start (EV_DEFAULT_ &check);
-   ev_run (EV_DEFAULT_ 0);
+   ev_check_start (ev_default_loop (0), &check);
+   ev_run (ev_default_loop (0), 0);
 
 =head1 EMBEDDING
 
@@ -4680,7 +4680,7 @@ additional independent event loops. Otherwise there will be no support
 for multiple event loops and there is no first event loop pointer
 argument. Instead, all functions act on the single default loop.
 
-Note that C<EV_DEFAULT> and C<EV_DEFAULT_> will no longer provide a
+Note that C<ev_default_loop (0)> and C<ev_default_loop (0),> will no longer provide a
 default loop when multiplicity is switched off - you always have to
 initialise the loop manually in this case.
 
@@ -5452,8 +5452,8 @@ section.
 
 These calls can be replaced easily by their C<ev_loop_xxx> counterparts:
 
-   ev_loop_destroy (EV_DEFAULT_UC);
-   ev_loop_fork (EV_DEFAULT);
+   ev_loop_destroy (ev_default_loop_uc_ ());
+   ev_loop_fork (ev_default_loop (0));
 
 =item function/symbol renames
 

@@ -2427,8 +2427,7 @@ idle_reify (struct ev_loop *loop)
 #endif
 
 /* make timers pending */
-static inline void
-timers_reify (struct ev_loop *loop)
+static inline void timers_reify (struct ev_loop *loop)
 {
   EV_FREQUENT_CHECK;
 
