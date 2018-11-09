@@ -179,7 +179,7 @@ epoll_poll (struct ev_loop *loop, ev_tstamp timeout)
       if (expect_false ((uint32_t)anfds [fd].egen != (uint32_t)(ev->data.u64 >> 32)))
         {
           /* recreate kernel state */
-          postfork |= 2;
+          ((loop)->postfork) |= 2;
           continue;
         }
 
@@ -203,7 +203,7 @@ epoll_poll (struct ev_loop *loop, ev_tstamp timeout)
           /* which is fortunately easy to do for us. */
           if (epoll_ctl (backend_fd, want ? EPOLL_CTL_MOD : EPOLL_CTL_DEL, fd, ev))
             {
-              postfork |= 2; /* an error occurred, recreate kernel state */
+              ((loop)->postfork) |= 2; /* an error occurred, recreate kernel state */
               continue;
             }
         }

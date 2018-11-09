@@ -858,8 +858,7 @@ ev_set_allocator (void *(*cb)(void *ptr, long size) EV_THROW) EV_THROW
   alloc = cb;
 }
 
-static inline void *
-ev_realloc (void *ptr, long size)
+static inline void *ev_realloc (void *ptr, long size)
 {
   ptr = alloc (ptr, size);
 
@@ -1119,16 +1118,16 @@ ev_feed_event (struct ev_loop *loop, void *w, int revents) EV_THROW
 static inline void
 feed_reverse (struct ev_loop *loop, ev_watcher *w)
 {
-  array_needsize (ev_watcher *, rfeeds, rfeedmax, rfeedcnt + 1, EMPTY2);
-  rfeeds [rfeedcnt++] = w;
+  array_needsize (ev_watcher *, ((loop)->rfeeds), ((loop)->rfeedmax), ((loop)->rfeedcnt) + 1, EMPTY2);
+  ((loop)->rfeeds) [((loop)->rfeedcnt)++] = w;
 }
 
 static inline void
 feed_reverse_done (struct ev_loop *loop, int revents)
 {
   do
-    ev_feed_event (loop, rfeeds [--rfeedcnt], revents);
-  while (rfeedcnt);
+    ev_feed_event (loop, ((loop)->rfeeds) [--((loop)->rfeedcnt)], revents);
+  while (((loop)->rfeedcnt));
 }
 
 static inline void
@@ -2118,7 +2117,7 @@ ev_loop_destroy (struct ev_loop *loop)
   ev_free (anfds); anfds = 0; anfdmax = 0;
 
   /* have to use the microsoft-never-gets-it-right macro */
-  array_free (rfeed, EMPTY);
+  array_free ((loop)->rfeed, EMPTY);
   array_free (fdchange, EMPTY);
   array_free (timer, EMPTY);
 #if EV_PERIODIC_ENABLE
@@ -2130,7 +2129,7 @@ ev_loop_destroy (struct ev_loop *loop)
 #if EV_CLEANUP_ENABLE
   array_free (cleanup, EMPTY);
 #endif
-  array_free (prepare, EMPTY);
+  array_free ((loop)->prepare, EMPTY);
   array_free (check, EMPTY);
 #if EV_ASYNC_ENABLE
   array_free (async, EMPTY);
@@ -2165,7 +2164,7 @@ loop_fork (struct ev_loop *loop)
 #endif
 
 #if EV_SIGNAL_ENABLE || EV_ASYNC_ENABLE
-  if (ev_is_active (&pipe_w) && postfork != 2)
+  if (ev_is_active (&pipe_w) && ((loop)->postfork) != 2)
     {
       /* pipe_write_wanted must be false now, so modifying fd vars should be safe */
 
@@ -2181,7 +2180,7 @@ loop_fork (struct ev_loop *loop)
     }
 #endif
 
-  postfork = 0;
+  ((loop)->postfork) = 0;
 }
 
 
@@ -2309,8 +2308,8 @@ ev_verify (struct ev_loop *loop) EV_THROW
 #endif
 
 #if EV_PREPARE_ENABLE
-  assert (preparemax >= preparecnt);
-  array_verify (loop, (ev_watcher **)prepares, preparecnt);
+  assert (((loop)->preparemax) >= ((loop)->preparecnt));
+  array_verify (loop, (ev_watcher **)((loop)->prepares), ((loop)->preparecnt));
 #endif
 
 #if EV_CHECK_ENABLE
@@ -2357,7 +2356,7 @@ ev_default_loop (unsigned int flags) EV_THROW
 void
 ev_loop_fork (struct ev_loop *loop) EV_THROW
 {
-  postfork = 1;
+  ((loop)->postfork) = 1;
 }
 
 /*****************************************************************************/
@@ -2643,8 +2642,7 @@ time_update (struct ev_loop *loop, ev_tstamp max_block)
     }
 }
 
-int
-ev_run (struct ev_loop *loop, int flags)
+int ev_run (struct ev_loop *loop, int flags)
 {
 #if EV_FEATURE_API
   ++loop_depth;
@@ -2667,13 +2665,13 @@ ev_run (struct ev_loop *loop, int flags)
         if (expect_false (getpid () != curpid))
           {
             curpid = getpid ();
-            postfork = 1;
+            ((loop)->postfork) = 1;
           }
 #endif
 
 #if EV_FORK_ENABLE
       /* we might have forked, so queue fork handlers */
-      if (expect_false (postfork))
+      if (expect_false (((loop)->postfork)))
         if (forkcnt)
           {
             queue_events (loop, (ev_watcher **)forks, forkcnt, EV_FORK);
@@ -2683,9 +2681,9 @@ ev_run (struct ev_loop *loop, int flags)
 
 #if EV_PREPARE_ENABLE
       /* queue prepare watchers (and execute them) */
-      if (expect_false (preparecnt))
+      if (expect_false (((loop)->preparecnt)))
         {
-          queue_events (loop, (ev_watcher **)prepares, preparecnt, EV_PREPARE);
+          queue_events (loop, (ev_watcher **)((loop)->prepares), ((loop)->preparecnt), EV_PREPARE);
           EV_INVOKE_PENDING;
         }
 #endif
@@ -2694,7 +2692,7 @@ ev_run (struct ev_loop *loop, int flags)
         break;
 
       /* we might have forked, so reify kernel state if necessary */
-      if (expect_false (postfork))
+      if (expect_false (((loop)->postfork)))
         loop_fork (loop);
 
       /* update fd-related kernel structures */
@@ -3718,9 +3716,9 @@ ev_prepare_start (struct ev_loop *loop, ev_prepare *w) EV_THROW
 
   EV_FREQUENT_CHECK;
 
-  ev_start (loop, (ev_watcher *)w, ++preparecnt);
-  array_needsize (ev_prepare *, prepares, preparemax, preparecnt, EMPTY2);
-  prepares [preparecnt - 1] = w;
+  ev_start (loop, (ev_watcher *)w, ++((loop)->preparecnt));
+  array_needsize (ev_prepare *, ((loop)->prepares), ((loop)->preparemax), ((loop)->preparecnt), EMPTY2);
+  ((loop)->prepares) [((loop)->preparecnt) - 1] = w;
 
   EV_FREQUENT_CHECK;
 }
@@ -3737,8 +3735,8 @@ ev_prepare_stop (struct ev_loop *loop, ev_prepare *w) EV_THROW
   {
     int active = ev_active (w);
 
-    prepares [active - 1] = prepares [--preparecnt];
-    ev_active (prepares [active - 1]) = active;
+    ((loop)->prepares) [active - 1] = ((loop)->prepares) [--((loop)->preparecnt)];
+    ev_active (((loop)->prepares) [active - 1]) = active;
   }
 
   ev_stop (loop, (ev_watcher *)w);
@@ -4046,24 +4044,22 @@ once_cb (struct ev_loop *loop, struct ev_once *once, int revents)
   cb (revents, arg);
 }
 
-static void
-once_cb_io (struct ev_loop *loop, ev_io *w, int revents)
+static void once_cb_io (struct ev_loop *loop, ev_io *w, int revents)
 {
   struct ev_once *once = (struct ev_once *)(((char *)w) - offsetof (struct ev_once, io));
 
   once_cb (loop, once, revents | ev_clear_pending (loop, &once->to));
 }
 
-static void
-once_cb_to (struct ev_loop *loop, ev_timer *w, int revents)
+static void once_cb_to (struct ev_loop *loop, ev_timer *w, int revents)
 {
   struct ev_once *once = (struct ev_once *)(((char *)w) - offsetof (struct ev_once, to));
 
   once_cb (loop, once, revents | ev_clear_pending (loop, &once->io));
 }
 
-void
-ev_once (struct ev_loop *loop, int fd, int events, ev_tstamp timeout, void (*cb)(int revents, void *arg), void *arg) EV_THROW
+void ev_once (struct ev_loop *loop, int fd, int events, ev_tstamp timeout,
+	void (*cb)(int revents, void *arg), void *arg) EV_THROW
 {
   struct ev_once *once = (struct ev_once *)ev_malloc (sizeof (struct ev_once));
 
@@ -4169,11 +4165,11 @@ ev_walk (struct ev_loop *loop, int types, void (*cb)(struct ev_loop *loop, int t
 
 #if EV_PREPARE_ENABLE
   if (types & EV_PREPARE)
-    for (i = preparecnt; i--; )
+    for (i = ((loop)->preparecnt); i--; )
 # if EV_EMBED_ENABLE
-      if (ev_cb (prepares [i]) != embed_prepare_cb)
+      if (ev_cb (((loop)->prepares) [i]) != embed_prepare_cb)
 # endif
-        cb (loop, EV_PREPARE, prepares [i]);
+        cb (loop, EV_PREPARE, ((loop)->prepares) [i]);
 #endif
 
 #if EV_CHECK_ENABLE

@@ -153,9 +153,7 @@ kqueue_poll (struct ev_loop *loop, ev_tstamp timeout)
     }
 }
 
-inline_size
-int
-kqueue_init (struct ev_loop *loop, int flags)
+static inline int kqueue_init (struct ev_loop *loop, int flags)
 {
   /* initialize the kernel queue */
   kqueue_fd_pid = getpid ();
@@ -178,17 +176,13 @@ kqueue_init (struct ev_loop *loop, int flags)
   return EVBACKEND_KQUEUE;
 }
 
-inline_size
-void
-kqueue_destroy (struct ev_loop *loop)
+static inline void kqueue_destroy (struct ev_loop *loop)
 {
   ev_free (kqueue_events);
   ev_free (kqueue_changes);
 }
 
-inline_size
-void
-kqueue_fork (struct ev_loop *loop)
+static inline void kqueue_fork (struct ev_loop *loop)
 {
   /* some BSD kernels don't just destroy the kqueue itself,
    * but also close the fd, which isn't documented, and

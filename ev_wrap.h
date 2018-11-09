@@ -74,14 +74,7 @@
 #define polls ((loop)->polls)
 #define port_eventmax ((loop)->port_eventmax)
 #define port_events ((loop)->port_events)
-#define postfork ((loop)->postfork)
-#define preparecnt ((loop)->preparecnt)
-#define preparemax ((loop)->preparemax)
-#define prepares ((loop)->prepares)
 #define release_cb ((loop)->release_cb)
-#define rfeedcnt ((loop)->rfeedcnt)
-#define rfeedmax ((loop)->rfeedmax)
-#define rfeeds ((loop)->rfeeds)
 #define rtmn_diff ((loop)->rtmn_diff)
 #define sig_pending ((loop)->sig_pending)
 #define sigfd ((loop)->sigfd)
@@ -173,14 +166,7 @@
 #undef polls
 #undef port_eventmax
 #undef port_events
-#undef postfork
-#undef preparecnt
-#undef preparemax
-#undef prepares
 #undef release_cb
-#undef rfeedcnt
-#undef rfeedmax
-#undef rfeeds
 #undef rtmn_diff
 #undef sig_pending
 #undef sigfd

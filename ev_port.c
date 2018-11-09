@@ -137,7 +137,7 @@ port_poll (struct ev_loop *loop, ev_tstamp timeout)
     }
 }
 
-inline_size
+static inline
 int
 port_init (struct ev_loop *loop, int flags)
 {
@@ -165,14 +165,14 @@ port_init (struct ev_loop *loop, int flags)
   return EVBACKEND_PORT;
 }
 
-inline_size
+static inline
 void
 port_destroy (struct ev_loop *loop)
 {
   ev_free (port_events);
 }
 
-inline_size
+static inline
 void
 port_fork (struct ev_loop *loop)
 {
