@@ -61,7 +61,7 @@ port_associate_and_check (struct ev_loop *loop, int fd, int ev)
 {
   if (0 >
       port_associate (
-         backend_fd, PORT_SOURCE_FD, fd,
+         ((loop)->backend_fd), PORT_SOURCE_FD, fd,
          (ev & EV_READ ? POLLIN : 0)
          | (ev & EV_WRITE ? POLLOUT : 0),
          0
@@ -84,7 +84,7 @@ port_modify (struct ev_loop *loop, int fd, int oev, int nev)
   if (!nev)
     {
       if (oev)
-        port_dissociate (backend_fd, PORT_SOURCE_FD, fd);
+        port_dissociate (((loop)->backend_fd), PORT_SOURCE_FD, fd);
     }
   else
     port_associate_and_check (loop, fd, nev);
@@ -100,40 +100,40 @@ port_poll (struct ev_loop *loop, ev_tstamp timeout)
   /* we initialise this to something we will skip in the loop, as */
   /* port_getn can return with nget unchanged, but no indication */
   /* whether it was the original value or has been updated :/ */
-  port_events [0].portev_source = 0;
+  ((loop)->port_events) [0].portev_source = 0;
 
   EV_RELEASE_CB;
   EV_TS_SET (ts, timeout);
-  res = port_getn (backend_fd, port_events, port_eventmax, &nget, &ts);
+  res = port_getn (((loop)->backend_fd), ((loop)->port_events), ((loop)->port_eventmax), &nget, &ts);
   EV_ACQUIRE_CB;
 
   /* port_getn may or may not set nget on error */
-  /* so we rely on port_events [0].portev_source not being updated */
+  /* so we rely on ((loop)->port_events) [0].portev_source not being updated */
   if (res == -1 && errno != ETIME && errno != EINTR)
     ev_syserr ("(libev) port_getn (see http://bugs.opensolaris.org/view_bug.do?bug_id=6268715, try LIBEV_FLAGS=3 env variable)");
 
   for (i = 0; i < nget; ++i)
     {
-      if (port_events [i].portev_source == PORT_SOURCE_FD)
+      if (((loop)->port_events) [i].portev_source == PORT_SOURCE_FD)
         {
-          int fd = port_events [i].portev_object;
+          int fd = ((loop)->port_events) [i].portev_object;
 
           fd_event (
             loop,
             fd,
-            (port_events [i].portev_events & (POLLOUT | POLLERR | POLLHUP) ? EV_WRITE : 0)
-            | (port_events [i].portev_events & (POLLIN | POLLERR | POLLHUP) ? EV_READ : 0)
+            (((loop)->port_events) [i].portev_events & (POLLOUT | POLLERR | POLLHUP) ? EV_WRITE : 0)
+            | (((loop)->port_events) [i].portev_events & (POLLIN | POLLERR | POLLHUP) ? EV_READ : 0)
           );
 
           fd_change (loop, fd, EV__IOFDSET);
         }
     }
 
-  if (expect_false (nget == port_eventmax))
+  if (expect_false (nget == ((loop)->port_eventmax)))
     {
-      ev_free (port_events);
-      port_eventmax = array_nextsize (sizeof (port_event_t), port_eventmax, port_eventmax + 1);
-      port_events = (port_event_t *)ev_malloc (sizeof (port_event_t) * port_eventmax);
+      ev_free (((loop)->port_events));
+      ((loop)->port_eventmax) = array_nextsize (sizeof (port_event_t), ((loop)->port_eventmax), ((loop)->port_eventmax) + 1);
+      ((loop)->port_events) = (port_event_t *)ev_malloc (sizeof (port_event_t) * ((loop)->port_eventmax));
     }
 }
 
@@ -142,12 +142,12 @@ int
 port_init (struct ev_loop *loop, int flags)
 {
   /* Initialize the kernel queue */
-  if ((backend_fd = port_create ()) < 0)
+  if ((((loop)->backend_fd) = port_create ()) < 0)
     return 0;
 
   assert (("libev: PORT_SOURCE_FD must not be zero", PORT_SOURCE_FD));
 
-  fcntl (backend_fd, F_SETFD, FD_CLOEXEC); /* not sure if necessary, hopefully doesn't hurt */
+  fcntl (((loop)->backend_fd), F_SETFD, FD_CLOEXEC); /* not sure if necessary, hopefully doesn't hurt */
 
   /* if my reading of the opensolaris kernel sources are correct, then
    * opensolaris does something very stupid: it checks if the time has already
@@ -155,12 +155,12 @@ port_init (struct ev_loop *loop, int flags)
    * up. Since we can't know what the case is, we need to guess by using a
    * "large enough" timeout. Normally, 1e-9 would be correct.
    */
-  backend_mintime = 1e-3; /* needed to compensate for port_getn returning early */
-  backend_modify  = port_modify;
-  backend_poll    = port_poll;
+  ((loop)->backend_mintime) = 1e-3; /* needed to compensate for port_getn returning early */
+  ((loop)->backend_modify)  = port_modify;
+  ((loop)->backend_poll)    = port_poll;
 
-  port_eventmax = 64; /* initial number of events receivable per poll */
-  port_events = (port_event_t *)ev_malloc (sizeof (port_event_t) * port_eventmax);
+  ((loop)->port_eventmax) = 64; /* initial number of events receivable per poll */
+  ((loop)->port_events) = (port_event_t *)ev_malloc (sizeof (port_event_t) * ((loop)->port_eventmax));
 
   return EVBACKEND_PORT;
 }
@@ -169,19 +169,19 @@ static inline
 void
 port_destroy (struct ev_loop *loop)
 {
-  ev_free (port_events);
+  ev_free (((loop)->port_events));
 }
 
 static inline
 void
 port_fork (struct ev_loop *loop)
 {
-  close (backend_fd);
+  close (((loop)->backend_fd));
 
-  while ((backend_fd = port_create ()) < 0)
+  while ((((loop)->backend_fd) = port_create ()) < 0)
     ev_syserr ("(libev) port");
 
-  fcntl (backend_fd, F_SETFD, FD_CLOEXEC);
+  fcntl (((loop)->backend_fd), F_SETFD, FD_CLOEXEC);
 
   /* re-register interest in fds */
   fd_rearm_all (loop);

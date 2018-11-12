@@ -47,10 +47,10 @@ static inline
 void
 kqueue_change (struct ev_loop *loop, int fd, int filter, int flags, int fflags)
 {
-  ++kqueue_changecnt;
-  array_needsize (struct kevent, kqueue_changes, kqueue_changemax, kqueue_changecnt, EMPTY2);
+  ++((loop)->kqueue_changecnt);
+  array_needsize (struct kevent, ((loop)->kqueue_changes), ((loop)->kqueue_changemax), ((loop)->kqueue_changecnt), EMPTY2);
 
-  EV_SET (&kqueue_changes [kqueue_changecnt - 1], fd, filter, flags, fflags, 0, 0);
+  EV_SET (&((loop)->kqueue_changes) [((loop)->kqueue_changecnt) - 1], fd, filter, flags, fflags, 0, 0);
 }
 
 /* OS X at least needs this */
@@ -90,18 +90,18 @@ kqueue_poll (struct ev_loop *loop, ev_tstamp timeout)
   struct timespec ts;
 
   /* need to resize so there is enough space for errors */
-  if (kqueue_changecnt > kqueue_eventmax)
+  if (((loop)->kqueue_changecnt) > ((loop)->kqueue_eventmax))
     {
-      ev_free (kqueue_events);
-      kqueue_eventmax = array_nextsize (sizeof (struct kevent), kqueue_eventmax, kqueue_changecnt);
-      kqueue_events = (struct kevent *)ev_malloc (sizeof (struct kevent) * kqueue_eventmax);
+      ev_free (((loop)->kqueue_events));
+      ((loop)->kqueue_eventmax) = array_nextsize (sizeof (struct kevent), ((loop)->kqueue_eventmax), ((loop)->kqueue_changecnt));
+      ((loop)->kqueue_events) = (struct kevent *)ev_malloc (sizeof (struct kevent) * ((loop)->kqueue_eventmax));
     }
 
   EV_RELEASE_CB;
   EV_TS_SET (ts, timeout);
-  res = kevent (backend_fd, kqueue_changes, kqueue_changecnt, kqueue_events, kqueue_eventmax, &ts);
+  res = kevent (((loop)->backend_fd), ((loop)->kqueue_changes), ((loop)->kqueue_changecnt), ((loop)->kqueue_events), ((loop)->kqueue_eventmax), &ts);
   EV_ACQUIRE_CB;
-  kqueue_changecnt = 0;
+  ((loop)->kqueue_changecnt) = 0;
 
   if (expect_false (res < 0))
     {
@@ -113,21 +113,21 @@ kqueue_poll (struct ev_loop *loop, ev_tstamp timeout)
 
   for (i = 0; i < res; ++i)
     {
-      int fd = kqueue_events [i].ident;
+      int fd = ((loop)->kqueue_events) [i].ident;
 
-      if (expect_false (kqueue_events [i].flags & EV_ERROR))
+      if (expect_false (((loop)->kqueue_events) [i].flags & EV_ERROR))
         {
-          int err = kqueue_events [i].data;
+          int err = ((loop)->kqueue_events) [i].data;
 
           /* we are only interested in errors for fds that we are interested in :) */
-          if (anfds [fd].events)
+          if (((loop)->anfds) [fd].events)
             {
               if (err == ENOENT) /* resubmit changes on ENOENT */
-                kqueue_modify (loop, fd, 0, anfds [fd].events);
+                kqueue_modify (loop, fd, 0, ((loop)->anfds) [fd].events);
               else if (err == EBADF) /* on EBADF, we re-check the fd */
                 {
                   if (fd_valid (fd))
-                    kqueue_modify (loop, fd, 0, anfds [fd].events);
+                    kqueue_modify (loop, fd, 0, ((loop)->anfds) [fd].events);
                   else
                     fd_kill (loop, fd);
                 }
@@ -139,47 +139,47 @@ kqueue_poll (struct ev_loop *loop, ev_tstamp timeout)
         fd_event (
           loop,
           fd,
-          kqueue_events [i].filter == EVFILT_READ ? EV_READ
-          : kqueue_events [i].filter == EVFILT_WRITE ? EV_WRITE
+          ((loop)->kqueue_events) [i].filter == EVFILT_READ ? EV_READ
+          : ((loop)->kqueue_events) [i].filter == EVFILT_WRITE ? EV_WRITE
           : 0
         );
     }
 
-  if (expect_false (res == kqueue_eventmax))
+  if (expect_false (res == ((loop)->kqueue_eventmax)))
     {
-      ev_free (kqueue_events);
-      kqueue_eventmax = array_nextsize (sizeof (struct kevent), kqueue_eventmax, kqueue_eventmax + 1);
-      kqueue_events = (struct kevent *)ev_malloc (sizeof (struct kevent) * kqueue_eventmax);
+      ev_free (((loop)->kqueue_events));
+      ((loop)->kqueue_eventmax) = array_nextsize (sizeof (struct kevent), ((loop)->kqueue_eventmax), ((loop)->kqueue_eventmax) + 1);
+      ((loop)->kqueue_events) = (struct kevent *)ev_malloc (sizeof (struct kevent) * ((loop)->kqueue_eventmax));
     }
 }
 
 static inline int kqueue_init (struct ev_loop *loop, int flags)
 {
   /* initialize the kernel queue */
-  kqueue_fd_pid = getpid ();
-  if ((backend_fd = kqueue ()) < 0)
+  ((loop)->kqueue_fd_pid) = getpid ();
+  if ((((loop)->backend_fd) = kqueue ()) < 0)
     return 0;
 
-  fcntl (backend_fd, F_SETFD, FD_CLOEXEC); /* not sure if necessary, hopefully doesn't hurt */
+  fcntl (((loop)->backend_fd), F_SETFD, FD_CLOEXEC); /* not sure if necessary, hopefully doesn't hurt */
 
-  backend_mintime = 1e-9; /* apparently, they did the right thing in freebsd */
-  backend_modify  = kqueue_modify;
-  backend_poll    = kqueue_poll;
+  ((loop)->backend_mintime) = 1e-9; /* apparently, they did the right thing in freebsd */
+  ((loop)->backend_modify)  = kqueue_modify;
+  ((loop)->backend_poll)    = kqueue_poll;
 
-  kqueue_eventmax = 64; /* initial number of events receivable per poll */
-  kqueue_events = (struct kevent *)ev_malloc (sizeof (struct kevent) * kqueue_eventmax);
+  ((loop)->kqueue_eventmax) = 64; /* initial number of events receivable per poll */
+  ((loop)->kqueue_events) = (struct kevent *)ev_malloc (sizeof (struct kevent) * ((loop)->kqueue_eventmax));
 
-  kqueue_changes   = 0;
-  kqueue_changemax = 0;
-  kqueue_changecnt = 0;
+  ((loop)->kqueue_changes)   = 0;
+  ((loop)->kqueue_changemax) = 0;
+  ((loop)->kqueue_changecnt) = 0;
 
   return EVBACKEND_KQUEUE;
 }
 
 static inline void kqueue_destroy (struct ev_loop *loop)
 {
-  ev_free (kqueue_events);
-  ev_free (kqueue_changes);
+  ev_free (((loop)->kqueue_events));
+  ev_free (((loop)->kqueue_changes));
 }
 
 static inline void kqueue_fork (struct ev_loop *loop)
@@ -194,14 +194,14 @@ static inline void kqueue_fork (struct ev_loop *loop)
    */
   pid_t newpid = getpid ();
 
-  if (newpid == kqueue_fd_pid)
-    close (backend_fd);
+  if (newpid == ((loop)->kqueue_fd_pid))
+    close (((loop)->backend_fd));
 
-  kqueue_fd_pid = newpid;
-  while ((backend_fd = kqueue ()) < 0)
+  ((loop)->kqueue_fd_pid) = newpid;
+  while ((((loop)->backend_fd) = kqueue ()) < 0)
     ev_syserr ("(libev) kqueue");
 
-  fcntl (backend_fd, F_SETFD, FD_CLOEXEC);
+  fcntl (((loop)->backend_fd), F_SETFD, FD_CLOEXEC);
 
   /* re-register interest in fds */
   fd_rearm_all (loop);

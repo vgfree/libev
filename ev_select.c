@@ -77,7 +77,7 @@ select_modify (struct ev_loop *loop, int fd, int oev, int nev)
 #if EV_SELECT_USE_FD_SET
 
     #if EV_SELECT_IS_WINSOCKET
-    SOCKET handle = anfds [fd].handle;
+    SOCKET handle = ((loop)->anfds) [fd].handle;
     #else
     int handle = fd;
     #endif
@@ -91,47 +91,47 @@ select_modify (struct ev_loop *loop, int fd, int oev, int nev)
     if ((oev ^ nev) & EV_READ)
     #endif
       if (nev & EV_READ)
-        FD_SET (handle, (fd_set *)vec_ri);
+        FD_SET (handle, (fd_set *)((loop)->vec_ri));
       else
-        FD_CLR (handle, (fd_set *)vec_ri);
+        FD_CLR (handle, (fd_set *)((loop)->vec_ri));
 
     #if EV_SELECT_IS_WINSOCKET
     if ((oev ^ nev) & EV_WRITE)
     #endif
       if (nev & EV_WRITE)
-        FD_SET (handle, (fd_set *)vec_wi);
+        FD_SET (handle, (fd_set *)((loop)->vec_wi));
       else
-        FD_CLR (handle, (fd_set *)vec_wi);
+        FD_CLR (handle, (fd_set *)((loop)->vec_wi));
 
 #else
 
     int     word = fd / NFDBITS;
     fd_mask mask = 1UL << (fd % NFDBITS);
 
-    if (expect_false (vec_max <= word))
+    if (expect_false (((loop)->vec_max) <= word))
       {
         int new_max = word + 1;
 
-        vec_ri = ev_realloc (vec_ri, new_max * NFDBYTES);
-        vec_ro = ev_realloc (vec_ro, new_max * NFDBYTES); /* could free/malloc */
-        vec_wi = ev_realloc (vec_wi, new_max * NFDBYTES);
-        vec_wo = ev_realloc (vec_wo, new_max * NFDBYTES); /* could free/malloc */
+        ((loop)->vec_ri) = ev_realloc (((loop)->vec_ri), new_max * NFDBYTES);
+        ((loop)->vec_ro) = ev_realloc (((loop)->vec_ro), new_max * NFDBYTES); /* could free/malloc */
+        ((loop)->vec_wi) = ev_realloc (((loop)->vec_wi), new_max * NFDBYTES);
+        ((loop)->vec_wo) = ev_realloc (((loop)->vec_wo), new_max * NFDBYTES); /* could free/malloc */
         #ifdef _WIN32
-        vec_eo = ev_realloc (vec_eo, new_max * NFDBYTES); /* could free/malloc */
+        ((loop)->vec_eo) = ev_realloc (((loop)->vec_eo), new_max * NFDBYTES); /* could free/malloc */
         #endif
 
-        for (; vec_max < new_max; ++vec_max)
-          ((fd_mask *)vec_ri) [vec_max] =
-          ((fd_mask *)vec_wi) [vec_max] = 0;
+        for (; ((loop)->vec_max) < new_max; ++((loop)->vec_max))
+          ((fd_mask *)((loop)->vec_ri)) [((loop)->vec_max)] =
+          ((fd_mask *)((loop)->vec_wi)) [((loop)->vec_max)] = 0;
       }
 
-    ((fd_mask *)vec_ri) [word] |= mask;
+    ((fd_mask *)((loop)->vec_ri)) [word] |= mask;
     if (!(nev & EV_READ))
-      ((fd_mask *)vec_ri) [word] &= ~mask;
+      ((fd_mask *)((loop)->vec_ri)) [word] &= ~mask;
 
-    ((fd_mask *)vec_wi) [word] |= mask;
+    ((fd_mask *)((loop)->vec_wi)) [word] |= mask;
     if (!(nev & EV_WRITE))
-      ((fd_mask *)vec_wi) [word] &= ~mask;
+      ((fd_mask *)((loop)->vec_wi)) [word] &= ~mask;
 #endif
   }
 }
@@ -149,11 +149,11 @@ select_poll (struct ev_loop *loop, ev_tstamp timeout)
 #if EV_SELECT_USE_FD_SET
   fd_setsize = sizeof (fd_set);
 #else
-  fd_setsize = vec_max * NFDBYTES;
+  fd_setsize = ((loop)->vec_max) * NFDBYTES;
 #endif
 
-  memcpy (vec_ro, vec_ri, fd_setsize);
-  memcpy (vec_wo, vec_wi, fd_setsize);
+  memcpy (((loop)->vec_ro), ((loop)->vec_ri), fd_setsize);
+  memcpy (((loop)->vec_wo), ((loop)->vec_wi), fd_setsize);
 
 #ifdef _WIN32
   /* pass in the write set as except set.
@@ -161,13 +161,13 @@ select_poll (struct ev_loop *loop, ev_tstamp timeout)
    * errors to be reported as an exception and not by setting
    * the writable bit. this is so uncontrollably lame.
    */
-  memcpy (vec_eo, vec_wi, fd_setsize);
-  res = select (vec_max * NFDBITS, (fd_set *)vec_ro, (fd_set *)vec_wo, (fd_set *)vec_eo, &tv);
+  memcpy (((loop)->vec_eo), ((loop)->vec_wi), fd_setsize);
+  res = select (((loop)->vec_max) * NFDBITS, (fd_set *)((loop)->vec_ro), (fd_set *)((loop)->vec_wo), (fd_set *)((loop)->vec_eo), &tv);
 #elif EV_SELECT_USE_FD_SET
-  fd_setsize = anfdmax < FD_SETSIZE ? anfdmax : FD_SETSIZE;
-  res = select (fd_setsize, (fd_set *)vec_ro, (fd_set *)vec_wo, 0, &tv);
+  fd_setsize = ((loop)->anfdmax) < FD_SETSIZE ? ((loop)->anfdmax) : FD_SETSIZE;
+  res = select (fd_setsize, (fd_set *)((loop)->vec_ro), (fd_set *)((loop)->vec_wo), 0, &tv);
 #else
-  res = select (vec_max * NFDBITS, (fd_set *)vec_ro, (fd_set *)vec_wo, 0, &tv);
+  res = select (((loop)->vec_max) * NFDBITS, (fd_set *)((loop)->vec_ro), (fd_set *)((loop)->vec_wo), 0, &tv);
 #endif
   EV_ACQUIRE_CB;
 
@@ -220,20 +220,20 @@ select_poll (struct ev_loop *loop, ev_tstamp timeout)
   {
     int fd;
 
-    for (fd = 0; fd < anfdmax; ++fd)
-      if (anfds [fd].events)
+    for (fd = 0; fd < ((loop)->anfdmax); ++fd)
+      if (((loop)->anfds) [fd].events)
         {
           int events = 0;
           #if EV_SELECT_IS_WINSOCKET
-          SOCKET handle = anfds [fd].handle;
+          SOCKET handle = ((loop)->anfds) [fd].handle;
           #else
           int handle = fd;
           #endif
 
-          if (FD_ISSET (handle, (fd_set *)vec_ro)) events |= EV_READ;
-          if (FD_ISSET (handle, (fd_set *)vec_wo)) events |= EV_WRITE;
+          if (FD_ISSET (handle, (fd_set *)((loop)->vec_ro))) events |= EV_READ;
+          if (FD_ISSET (handle, (fd_set *)((loop)->vec_wo))) events |= EV_WRITE;
           #ifdef _WIN32
-          if (FD_ISSET (handle, (fd_set *)vec_eo)) events |= EV_WRITE;
+          if (FD_ISSET (handle, (fd_set *)((loop)->vec_eo))) events |= EV_WRITE;
           #endif
 
           if (expect_true (events))
@@ -245,12 +245,12 @@ select_poll (struct ev_loop *loop, ev_tstamp timeout)
 
   {
     int word, bit;
-    for (word = vec_max; word--; )
+    for (word = ((loop)->vec_max); word--; )
       {
-        fd_mask word_r = ((fd_mask *)vec_ro) [word];
-        fd_mask word_w = ((fd_mask *)vec_wo) [word];
+        fd_mask word_r = ((fd_mask *)((loop)->vec_ro)) [word];
+        fd_mask word_w = ((fd_mask *)((loop)->vec_wo)) [word];
         #ifdef _WIN32
-        word_w |= ((fd_mask *)vec_eo) [word];
+        word_w |= ((fd_mask *)((loop)->vec_eo)) [word];
         #endif
 
         if (word_r || word_w)
@@ -275,26 +275,26 @@ static inline
 int
 select_init (struct ev_loop *loop, int flags)
 {
-  backend_mintime = 1e-6;
-  backend_modify  = select_modify;
-  backend_poll    = select_poll;
+  ((loop)->backend_mintime) = 1e-6;
+  ((loop)->backend_modify)  = select_modify;
+  ((loop)->backend_poll)    = select_poll;
 
 #if EV_SELECT_USE_FD_SET
-  vec_ri  = ev_malloc (sizeof (fd_set)); FD_ZERO ((fd_set *)vec_ri);
-  vec_ro  = ev_malloc (sizeof (fd_set));
-  vec_wi  = ev_malloc (sizeof (fd_set)); FD_ZERO ((fd_set *)vec_wi);
-  vec_wo  = ev_malloc (sizeof (fd_set));
+  ((loop)->vec_ri)  = ev_malloc (sizeof (fd_set)); FD_ZERO ((fd_set *)((loop)->vec_ri));
+  ((loop)->vec_ro)  = ev_malloc (sizeof (fd_set));
+  ((loop)->vec_wi)  = ev_malloc (sizeof (fd_set)); FD_ZERO ((fd_set *)((loop)->vec_wi));
+  ((loop)->vec_wo)  = ev_malloc (sizeof (fd_set));
   #ifdef _WIN32
-  vec_eo  = ev_malloc (sizeof (fd_set));
+  ((loop)->vec_eo)  = ev_malloc (sizeof (fd_set));
   #endif
 #else
-  vec_max = 0;
-  vec_ri  = 0;
-  vec_ro  = 0;
-  vec_wi  = 0;
-  vec_wo  = 0;
+  ((loop)->vec_max) = 0;
+  ((loop)->vec_ri)  = 0;
+  ((loop)->vec_ro)  = 0;
+  ((loop)->vec_wi)  = 0;
+  ((loop)->vec_wo)  = 0;
   #ifdef _WIN32
-  vec_eo  = 0;
+  ((loop)->vec_eo)  = 0;
   #endif
 #endif
 
@@ -305,12 +305,12 @@ static inline
 void
 select_destroy (struct ev_loop *loop)
 {
-  ev_free (vec_ri);
-  ev_free (vec_ro);
-  ev_free (vec_wi);
-  ev_free (vec_wo);
+  ev_free (((loop)->vec_ri));
+  ev_free (((loop)->vec_ro));
+  ev_free (((loop)->vec_wi));
+  ev_free (((loop)->vec_wo));
   #ifdef _WIN32
-  ev_free (vec_eo);
+  ev_free (((loop)->vec_eo));
   #endif
 }
 
