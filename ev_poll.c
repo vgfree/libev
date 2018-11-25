@@ -78,7 +78,7 @@ poll_modify (struct ev_loop *loop, int fd, int oev, int nev)
     {
       ((loop)->pollidxs) [fd] = -1;
 
-      if (expect_true (idx < --((loop)->pollcnt)))
+      if (likely (idx < --((loop)->pollcnt)))
         {
           ((loop)->polls) [idx] = ((loop)->polls) [((loop)->pollcnt)];
           ((loop)->pollidxs) [((loop)->polls) [idx].fd] = idx;
@@ -96,7 +96,7 @@ poll_poll (struct ev_loop *loop, ev_tstamp timeout)
   res = poll (((loop)->polls), ((loop)->pollcnt), timeout * 1e3);
   EV_ACQUIRE_CB;
 
-  if (expect_false (res < 0))
+  if (unlikely (res < 0))
     {
       if (errno == EBADF)
         fd_ebadf (loop);
@@ -110,11 +110,11 @@ poll_poll (struct ev_loop *loop, ev_tstamp timeout)
       {
         assert (("libev: poll() returned illegal result, broken BSD kernel?", p < ((loop)->polls) + ((loop)->pollcnt)));
 
-        if (expect_false (p->revents)) /* this expect is debatable */
+        if (unlikely (p->revents)) /* this expect is debatable */
           {
             --res;
 
-            if (expect_false (p->revents & POLLNVAL))
+            if (unlikely (p->revents & POLLNVAL))
               fd_kill (loop, p->fd);
             else
               fd_event (

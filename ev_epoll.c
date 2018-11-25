@@ -93,10 +93,10 @@ epoll_modify (struct ev_loop *loop, int fd, int oev, int nev)
   ev.events   = (nev & EV_READ  ? EPOLLIN  : 0)
               | (nev & EV_WRITE ? EPOLLOUT : 0);
 
-  if (expect_true (!epoll_ctl (((loop)->backend_fd), oev && oldmask != nev ? EPOLL_CTL_MOD : EPOLL_CTL_ADD, fd, &ev)))
+  if (likely (!epoll_ctl (((loop)->backend_fd), oev && oldmask != nev ? EPOLL_CTL_MOD : EPOLL_CTL_ADD, fd, &ev)))
     return;
 
-  if (expect_true (errno == ENOENT))
+  if (likely (errno == ENOENT))
     {
       /* if ENOENT then the fd went away, so try to do the right thing */
       if (!nev)
@@ -105,7 +105,7 @@ epoll_modify (struct ev_loop *loop, int fd, int oev, int nev)
       if (!epoll_ctl (((loop)->backend_fd), EPOLL_CTL_ADD, fd, &ev))
         return;
     }
-  else if (expect_true (errno == EEXIST))
+  else if (likely (errno == EEXIST))
     {
       /* EEXIST means we ignored a previous DEL, but the fd is still active */
       /* if the kernel mask is the same as the new mask, we assume it hasn't changed */
@@ -115,7 +115,7 @@ epoll_modify (struct ev_loop *loop, int fd, int oev, int nev)
       if (!epoll_ctl (((loop)->backend_fd), EPOLL_CTL_MOD, fd, &ev))
         return;
     }
-  else if (expect_true (errno == EPERM))
+  else if (likely (errno == EPERM))
     {
       /* EPERM means the fd is always ready, but epoll is too snobbish */
       /* to handle it, unlike select or poll. */
@@ -144,7 +144,7 @@ epoll_poll (struct ev_loop *loop, ev_tstamp timeout)
   int i;
   int eventcnt;
 
-  if (expect_false (((loop)->epoll_epermcnt)))
+  if (unlikely (((loop)->epoll_epermcnt)))
     timeout = 0.;
 
   /* epoll wait times cannot be larger than (LONG_MAX - 999UL) / HZ msecs, which is below */
@@ -153,7 +153,7 @@ epoll_poll (struct ev_loop *loop, ev_tstamp timeout)
   eventcnt = epoll_wait (((loop)->backend_fd), ((loop)->epoll_events), ((loop)->epoll_eventmax), timeout * 1e3);
   EV_ACQUIRE_CB;
 
-  if (expect_false (eventcnt < 0))
+  if (unlikely (eventcnt < 0))
     {
       if (errno != EINTR)
         ev_syserr ("(libev) epoll_wait");
@@ -176,14 +176,14 @@ epoll_poll (struct ev_loop *loop, ev_tstamp timeout)
        * other spurious notifications will be found by epoll_ctl, below
        * we assume that fd is always in range, as we never shrink the ((loop)->anfds) array
        */
-      if (expect_false ((uint32_t)((loop)->anfds) [fd].egen != (uint32_t)(ev->data.u64 >> 32)))
+      if (unlikely ((uint32_t)((loop)->anfds) [fd].egen != (uint32_t)(ev->data.u64 >> 32)))
         {
           /* recreate kernel state */
           ((loop)->postfork) |= 2;
           continue;
         }
 
-      if (expect_false (got & ~want))
+      if (unlikely (got & ~want))
         {
           ((loop)->anfds) [fd].emask = want;
 
@@ -212,7 +212,7 @@ epoll_poll (struct ev_loop *loop, ev_tstamp timeout)
     }
 
   /* if the receive array was full, increase its size */
-  if (expect_false (eventcnt == ((loop)->epoll_eventmax)))
+  if (unlikely (eventcnt == ((loop)->epoll_eventmax)))
     {
       ev_free (((loop)->epoll_events));
       ((loop)->epoll_eventmax) = array_nextsize (sizeof (struct epoll_event), ((loop)->epoll_eventmax), ((loop)->epoll_eventmax) + 1);

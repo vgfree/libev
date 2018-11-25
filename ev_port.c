@@ -129,7 +129,7 @@ port_poll (struct ev_loop *loop, ev_tstamp timeout)
         }
     }
 
-  if (expect_false (nget == ((loop)->port_eventmax)))
+  if (unlikely (nget == ((loop)->port_eventmax)))
     {
       ev_free (((loop)->port_events));
       ((loop)->port_eventmax) = array_nextsize (sizeof (port_event_t), ((loop)->port_eventmax), ((loop)->port_eventmax) + 1);

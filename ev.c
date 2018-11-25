@@ -668,8 +668,8 @@ struct signalfd_siginfo
   #define _expect(expr,value)         (expr)
 #endif
 
-#define expect_false(expr) _expect (!!(expr), 0)
-#define expect_true(expr)  _expect (!!(expr), 1)
+#define unlikely(expr) _expect (!!(expr), 0)
+#define likely(expr)  _expect (!!(expr), 1)
 
 
 
@@ -729,38 +729,37 @@ static EV_ATOMIC_T g_have_monotonic; /* did clock_gettime (CLOCK_MONOTONIC) work
 
 /* a floor() replacement function, should be independent of ev_tstamp type */
 
-static ev_tstamp
-ev_floor (ev_tstamp v)
+static ev_tstamp ev_floor (ev_tstamp v)
 {
-  /* the choice of shift factor is not terribly important */
+	/* the choice of shift factor is not terribly important */
 #if FLT_RADIX != 2 /* assume FLT_RADIX == 10 */
-  const ev_tstamp shift = sizeof (unsigned long) >= 8 ? 10000000000000000000. : 1000000000.;
+	const ev_tstamp shift = sizeof (unsigned long) >= 8 ? 10000000000000000000. : 1000000000.;
 #else
-  const ev_tstamp shift = sizeof (unsigned long) >= 8 ? 18446744073709551616. : 4294967296.;
+	const ev_tstamp shift = sizeof (unsigned long) >= 8 ? 18446744073709551616. : 4294967296.;
 #endif
 
-  /* argument too large for an unsigned long? */
-  if (expect_false (v >= shift))
-    {
-      ev_tstamp f;
+	/* argument too large for an unsigned long? */
+	if (unlikely (v >= shift))
+	{
+		ev_tstamp f;
 
-      if (v == v - 1.)
-        return v; /* very large number */
+		if (v == v - 1.)
+			return v; /* very large number */
 
-      f = shift * ev_floor (v * (1. / shift));
-      return f + ev_floor (v - f);
-    }
+		f = shift * ev_floor (v * (1. / shift));
+		return f + ev_floor (v - f);
+	}
 
-  /* special treatment for negative args? */
-  if (expect_false (v < 0.))
-    {
-      ev_tstamp f = -ev_floor (-v);
+	/* special treatment for negative args? */
+	if (unlikely (v < 0.))
+	{
+		ev_tstamp f = -ev_floor (-v);
 
-      return f - (f == v ? 0 : 1);
-    }
+		return f - (f == v ? 0 : 1);
+	}
 
-  /* fits into an unsigned long */
-  return (unsigned long)v;
+	/* fits into an unsigned long */
+	return (unsigned long)v;
 }
 
 #endif
@@ -775,35 +774,35 @@ ev_floor (ev_tstamp v)
 static unsigned int ev_linux_version (void)
 {
 #ifdef __linux
-  unsigned int v = 0;
-  struct utsname buf;
-  int i;
-  char *p = buf.release;
+	unsigned int v = 0;
+	struct utsname buf;
+	int i;
+	char *p = buf.release;
 
-  if (uname (&buf))
-    return 0;
+	if (uname (&buf))
+		return 0;
 
-  for (i = 3+1; --i; )
-    {
-      unsigned int c = 0;
+	for (i = 3+1; --i; )
+	{
+		unsigned int c = 0;
 
-      for (;;)
-        {
-          if (*p >= '0' && *p <= '9')
-            c = c * 10 + *p++ - '0';
-          else
-            {
-              p += *p == '.';
-              break;
-            }
-        }
+		for (;;)
+		{
+			if (*p >= '0' && *p <= '9')
+				c = c * 10 + *p++ - '0';
+			else
+			{
+				p += *p == '.';
+				break;
+			}
+		}
 
-      v = (v << 8) | c;
-    }
+		v = (v << 8) | c;
+	}
 
-  return v;
+	return v;
 #else
-  return 0;
+	return 0;
 #endif
 }
 
@@ -815,60 +814,57 @@ static void (*syserr_cb)(const char *msg) EV_THROW;
 
 void ev_set_syserr_cb (void (*cb)(const char *msg) EV_THROW) EV_THROW
 {
-  syserr_cb = cb;
+	syserr_cb = cb;
 }
 
  
 static void ev_syserr (const char *msg)
 {
-  if (!msg)
-    msg = "(libev) system error";
+	if (!msg)
+		msg = "(libev) system error";
 
-  if (syserr_cb)
-    syserr_cb (msg);
-  else
-    {
-      perror (msg);
-      abort ();
-    }
+	if (syserr_cb) {
+		syserr_cb (msg);
+	} else {
+		perror (msg);
+		abort ();
+	}
 }
 
 static void *ev_realloc_emul (void *ptr, long size) EV_THROW
 {
-  /* some systems, notably openbsd and darwin, fail to properly
-   * implement realloc (x, 0) (as required by both ansi c-89 and
-   * the single unix specification, so work around them here.
-   * recently, also (at least) fedora and debian started breaking it,
-   * despite documenting it otherwise.
-   */
+	/* some systems, notably openbsd and darwin, fail to properly
+	 * implement realloc (x, 0) (as required by both ansi c-89 and
+	 * the single unix specification, so work around them here.
+	 * recently, also (at least) fedora and debian started breaking it,
+	 * despite documenting it otherwise.
+	 */
 
-  if (size)
-    return realloc (ptr, size);
+	if (size)
+		return realloc (ptr, size);
 
-  free (ptr);
-  return 0;
+	free (ptr);
+	return 0;
 }
 
 static void *(*alloc)(void *ptr, long size) EV_THROW = ev_realloc_emul;
 
 
-void
-ev_set_allocator (void *(*cb)(void *ptr, long size) EV_THROW) EV_THROW
+void ev_set_allocator (void *(*cb)(void *ptr, long size) EV_THROW) EV_THROW
 {
-  alloc = cb;
+	alloc = cb;
 }
 
 static inline void *ev_realloc (void *ptr, long size)
 {
-  ptr = alloc (ptr, size);
+	ptr = alloc (ptr, size);
 
-  if (!ptr && size)
-    {
-      fprintf (stderr, "(libev) cannot allocate %ld bytes, aborting.", size);
-      abort ();
-    }
+	if (!ptr && size) {
+		fprintf (stderr, "(libev) cannot allocate %ld bytes, aborting.", size);
+		abort ();
+	}
 
-  return ptr;
+	return ptr;
 }
 
 #define ev_malloc(size) ev_realloc (0, (size))
@@ -882,75 +878,73 @@ static inline void *ev_realloc (void *ptr, long size)
 /* file descriptor info structure */
 typedef struct
 {
-  ev_watcher_list *head;
-  unsigned char events; /* the events watched for */
-  unsigned char reify;  /* flag set when this ANFD needs reification (EV_ANFD_REIFY, EV__IOFDSET) */
-  unsigned char emask;  /* the epoll backend stores the actual kernel mask in here */
-  unsigned char unused;
+	ev_watcher_list *head;
+	unsigned char events; /* the events watched for */
+	unsigned char reify;  /* flag set when this ANFD needs reification (EV_ANFD_REIFY, EV__IOFDSET) */
+	unsigned char emask;  /* the epoll backend stores the actual kernel mask in here */
+	unsigned char unused;
 #if EV_USE_EPOLL
-  unsigned int egen;    /* generation counter to counter epoll bugs */
+	unsigned int egen;    /* generation counter to counter epoll bugs */
 #endif
 #if EV_SELECT_IS_WINSOCKET || EV_USE_IOCP
-  SOCKET handle;
+	SOCKET handle;
 #endif
 #if EV_USE_IOCP
-  OVERLAPPED or, ow;
+	OVERLAPPED or, ow;
 #endif
 } ANFD;
 
 /* stores the pending event set for a given watcher */
 typedef struct
 {
-  ev_watcher *w;
-  int events; /* the pending event set for the given watcher */
+	ev_watcher *w;
+	int events; /* the pending event set for the given watcher */
 } ANPENDING;
 
 #if EV_USE_INOTIFY
 /* hash table entry per inotify-id */
 typedef struct
 {
-  ev_watcher_list *head;
+	ev_watcher_list *head;
 } ANFS;
 #endif
 
 /* Heap Entry */
+/* a heap element */
 #if EV_HEAP_CACHE_AT
-  /* a heap element */
-  typedef struct {
-    ev_tstamp at;
-    ev_watcher_time *w;
-  } ANHE;
+typedef struct {
+	ev_tstamp at;
+	ev_watcher_time *w;
+} ANHE;
 
-  #define ANHE_w(he)        (he).w     /* access watcher, read-write */
-  #define ANHE_at(he)       (he).at    /* access cached at, read-only */
-  #define ANHE_at_cache(he) (he).at = (he).w->at /* update at from watcher */
+#define ANHE_w(he)        (he).w     /* access watcher, read-write */
+#define ANHE_at(he)       (he).at    /* access cached at, read-only */
+#define ANHE_at_cache(he) (he).at = (he).w->at /* update at from watcher */
 #else
-  /* a heap element */
-  typedef ev_watcher_time *ANHE;
+typedef ev_watcher_time *ANHE;
 
-  #define ANHE_w(he)        (he)
-  #define ANHE_at(he)       (he)->at
-  #define ANHE_at_cache(he)
+#define ANHE_w(he)        (he)
+#define ANHE_at(he)       (he)->at
+#define ANHE_at_cache(he)
 #endif
 
 
-  struct ev_loop
-  {
-    ev_tstamp ev_rt_now;
-    #define ev_rt_now ((loop)->ev_rt_now)
-    #define VAR(name,decl) decl;
-      #include "ev_vars.h"
-    #undef VAR
-  };
-  #include "ev_wrap.h"
+struct ev_loop
+{
+	ev_tstamp ev_rt_now;
+#define VAR(name,decl) decl;
+#include "ev_vars.h"
+#undef VAR
+};
+#include "ev_wrap.h"
 
-  static struct ev_loop default_loop_struct;
-  EV_API_DECL struct ev_loop *ev_default_loop_ptr = 0; /* needs to be initialised to make it a definition despite extern */
+static struct ev_loop default_loop_struct;
+EV_API_DECL struct ev_loop *ev_default_loop_ptr = 0; /* needs to be initialised to make it a definition despite extern */
 
 
 #if EV_FEATURE_API
-# define EV_RELEASE_CB if (expect_false (((loop)->release_cb))) ((loop)->release_cb) (loop)
-# define EV_ACQUIRE_CB if (expect_false (((loop)->acquire_cb))) ((loop)->acquire_cb) (loop)
+# define EV_RELEASE_CB if (unlikely (((loop)->release_cb))) ((loop)->release_cb) (loop)
+# define EV_ACQUIRE_CB if (unlikely (((loop)->acquire_cb))) ((loop)->acquire_cb) (loop)
 # define EV_INVOKE_PENDING ((loop)->invoke_cb) (loop)
 #else
 # define EV_RELEASE_CB (void)0
@@ -963,67 +957,62 @@ typedef struct
 /*****************************************************************************/
 
 #ifndef EV_HAVE_EV_TIME
-ev_tstamp
-ev_time (void) EV_THROW
+ev_tstamp ev_time (void) EV_THROW
 {
 #if EV_USE_REALTIME
-  if (expect_true (g_have_realtime))
-    {
-      struct timespec ts;
-      clock_gettime (CLOCK_REALTIME, &ts);
-      return ts.tv_sec + ts.tv_nsec * 1e-9;
-    }
+	if (likely (g_have_realtime))
+	{
+		struct timespec ts;
+		clock_gettime (CLOCK_REALTIME, &ts);
+		return ts.tv_sec + ts.tv_nsec * 1e-9;
+	}
 #endif
 
-  struct timeval tv;
-  gettimeofday (&tv, 0);
-  return tv.tv_sec + tv.tv_usec * 1e-6;
+	struct timeval tv;
+	gettimeofday (&tv, 0);
+	return tv.tv_sec + tv.tv_usec * 1e-6;
 }
 #endif
 
-static inline ev_tstamp
-get_clock (void)
+static inline ev_tstamp get_clock (void)
 {
 #if EV_USE_MONOTONIC
-  if (expect_true (g_have_monotonic))
-    {
-      struct timespec ts;
-      clock_gettime (CLOCK_MONOTONIC, &ts);
-      return ts.tv_sec + ts.tv_nsec * 1e-9;
-    }
+	if (likely (g_have_monotonic))
+	{
+		struct timespec ts;
+		clock_gettime (CLOCK_MONOTONIC, &ts);
+		return ts.tv_sec + ts.tv_nsec * 1e-9;
+	}
 #endif
 
-  return ev_time ();
+	return ev_time ();
 }
 
-ev_tstamp
-ev_now (struct ev_loop *loop) EV_THROW
+ev_tstamp ev_now (struct ev_loop *loop) EV_THROW
 {
-  return ev_rt_now;
+  return ((loop)->ev_rt_now);
 }
 
-void
-ev_sleep (ev_tstamp delay) EV_THROW
+void ev_sleep (ev_tstamp delay) EV_THROW
 {
-  if (delay > 0.)
-    {
+	if (delay > 0.) {
 #if EV_USE_NANOSLEEP
-      struct timespec ts;
+		struct timespec ts;
 
-      EV_TS_SET (ts, delay);
-      nanosleep (&ts, 0);
+		EV_TS_SET (ts, delay);
+		nanosleep (&ts, 0);
 #elif defined _WIN32
-      Sleep ((unsigned long)(delay * 1e3));
+		Sleep ((unsigned long)(delay * 1e3));
 #else
-      struct timeval tv;
+		struct timeval tv;
 
-      /* here we rely on sys/time.h + sys/types.h + unistd.h providing select */
-      /* something not guaranteed by newer posix versions, but guaranteed */
-      /* by older ones */
-      EV_TV_SET (tv, delay);
-      select (0, 0, 0, 0, &tv);
+		/* here we rely on sys/time.h + sys/types.h + unistd.h providing select */
+		/* something not guaranteed by newer posix versions, but guaranteed */
+		/* by older ones */
+		EV_TV_SET (tv, delay);
+		select (0, 0, 0, 0, &tv);
 #endif
-    }
+	}
 }
 
 /*****************************************************************************/
@@ -1065,7 +1054,7 @@ array_realloc (int elem, void *base, int *cur, int cnt)
   memset ((void *)(base), 0, sizeof (*(base)) * (count))
 
 #define array_needsize(type,base,cur,cnt,init)			\
-  if (expect_false ((cnt) > (cur)))				\
+  if (unlikely ((cnt) > (cur)))				\
     {								\
       int ocur_ = (cur);				\
       (base) = (type *)array_realloc				\
@@ -1102,7 +1091,7 @@ ev_feed_event (struct ev_loop *loop, void *w, int revents) EV_THROW
   ev_watcher *w_ = (ev_watcher *)w;
   int pri = ABSPRI (w_);
 
-  if (expect_false (w_->pending))
+  if (unlikely (w_->pending))
     ((loop)->pendings) [pri][w_->pending - 1].events |= revents;
   else
     {
@@ -1163,7 +1152,7 @@ fd_event (struct ev_loop *loop, int fd, int revents)
 {
   ANFD *anfd = ((loop)->anfds) + fd;
 
-  if (expect_true (!anfd->reify))
+  if (likely (!anfd->reify))
     fd_event_nocheck (loop, fd, revents);
 }
 
@@ -1217,7 +1206,7 @@ fd_reify (struct ev_loop *loop)
 
       anfd->reify  = 0;
 
-      /*if (expect_true (o_reify & EV_ANFD_REIFY)) probably a deoptimisation */
+      /*if (likely (o_reify & EV_ANFD_REIFY)) probably a deoptimisation */
         {
           anfd->events = 0;
 
@@ -1243,7 +1232,7 @@ fd_change (struct ev_loop *loop, int fd, int flags)
   unsigned char reify = ((loop)->anfds) [fd].reify;
   ((loop)->anfds) [fd].reify |= flags;
 
-  if (expect_true (!reify))
+  if (likely (!reify))
     {
       ++((loop)->fdchangecnt);
       array_needsize (int, ((loop)->fdchanges), ((loop)->fdchangemax), ((loop)->fdchangecnt), EMPTY2);
@@ -1368,7 +1357,7 @@ downheap (ANHE *heap, int N, int k)
       ANHE *pos = heap + DHEAP * (k - HEAP0) + HEAP0 + 1;
 
       /* find minimum child */
-      if (expect_true (pos + DHEAP - 1 < E))
+      if (likely (pos + DHEAP - 1 < E))
         {
           /* fast path */                               (minpos = pos + 0), (minat = ANHE_at (*minpos));
           if (               ANHE_at (pos [1]) < minat) (minpos = pos + 1), (minat = ANHE_at (*minpos));
@@ -1540,52 +1529,51 @@ evpipe_init (struct ev_loop *loop)
     }
 }
 
-static inline void
-evpipe_write (struct ev_loop *loop, EV_ATOMIC_T *flag)
+static inline void evpipe_write (struct ev_loop *loop, EV_ATOMIC_T *flag)
 {
-  ECB_MEMORY_FENCE; /* push out the write before this function was called, acquire flag */
+	ECB_MEMORY_FENCE; /* push out the write before this function was called, acquire flag */
 
-  if (expect_true (*flag))
-    return;
+	if (likely (*flag))
+		return;
 
-  *flag = 1;
-  ECB_MEMORY_FENCE_RELEASE; /* make sure flag is visible before the wakeup */
+	*flag = 1;
+	ECB_MEMORY_FENCE_RELEASE; /* make sure flag is visible before the wakeup */
 
-  ((loop)->pipe_write_skipped) = 1;
+	((loop)->pipe_write_skipped) = 1;
 
-  ECB_MEMORY_FENCE; /* make sure ((loop)->pipe_write_skipped) is visible before we check ((loop)->pipe_write_wanted) */
+	ECB_MEMORY_FENCE; /* make sure ((loop)->pipe_write_skipped) is visible before we check ((loop)->pipe_write_wanted) */
 
-  if (((loop)->pipe_write_wanted))
-    {
-      int old_errno;
+	if (((loop)->pipe_write_wanted))
+	{
+		int old_errno;
 
-      ((loop)->pipe_write_skipped) = 0;
-      ECB_MEMORY_FENCE_RELEASE;
+		((loop)->pipe_write_skipped) = 0;
+		ECB_MEMORY_FENCE_RELEASE;
 
-      old_errno = errno; /* save errno because write will clobber it */
+		old_errno = errno; /* save errno because write will clobber it */
 
 #if EV_USE_EVENTFD
-      if (((loop)->evpipe) [0] < 0)
-        {
-          uint64_t counter = 1;
-          write (((loop)->evpipe) [1], &counter, sizeof (uint64_t));
-        }
-      else
+		if (((loop)->evpipe) [0] < 0)
+		{
+			uint64_t counter = 1;
+			write (((loop)->evpipe) [1], &counter, sizeof (uint64_t));
+		}
+		else
 #endif
-        {
+		{
 #ifdef _WIN32
-          WSABUF buf;
-          DWORD sent;
-          buf.buf = &buf;
-          buf.len = 1;
-          WSASend (EV_FD_TO_WIN32_HANDLE (((loop)->evpipe) [1]), &buf, 1, &sent, 0, 0, 0);
+			WSABUF buf;
+			DWORD sent;
+			buf.buf = &buf;
+			buf.len = 1;
+			WSASend (EV_FD_TO_WIN32_HANDLE (((loop)->evpipe) [1]), &buf, 1, &sent, 0, 0, 0);
 #else
-          write (((loop)->evpipe) [1], &(((loop)->evpipe) [1]), 1);
+			write (((loop)->evpipe) [1], &(((loop)->evpipe) [1]), 1);
 #endif
-        }
+		}
 
-      errno = old_errno;
-    }
+		errno = old_errno;
+	}
 }
 
 /* called whenever the libev signal pipe */
@@ -1632,7 +1620,7 @@ pipecb (struct ev_loop *loop, ev_io *iow, int revents)
       ECB_MEMORY_FENCE;
 
       for (i = EV_NSIG - 1; i--; )
-        if (expect_false (signals [i].pending))
+        if (unlikely (signals [i].pending))
           ev_feed_signal_event (loop, i + 1);
     }
 #endif
@@ -1687,7 +1675,7 @@ ev_feed_signal_event (struct ev_loop *loop, int signum) EV_THROW
 {
   ev_watcher_list *w;
 
-  if (expect_false (signum <= 0 || signum >= EV_NSIG))
+  if (unlikely (signum <= 0 || signum >= EV_NSIG))
     return;
 
   --signum;
@@ -1695,7 +1683,7 @@ ev_feed_signal_event (struct ev_loop *loop, int signum) EV_THROW
   /* it is permissible to try to feed a signal to the wrong loop */
   /* or, likely more useful, feeding a signal nobody is waiting for */
 
-  if (expect_false (signals [signum].loop != loop))
+  if (unlikely (signals [signum].loop != loop))
     return;
 
   signals [signum].pending = 0;
@@ -1979,10 +1967,10 @@ loop_init (struct ev_loop *loop, unsigned int flags) EV_THROW
           && getenv ("LIBEV_FLAGS"))
         flags = atoi (getenv ("LIBEV_FLAGS"));
 
-      ev_rt_now          = ev_time ();
+      ((loop)->ev_rt_now)          = ev_time ();
       ((loop)->mn_now)             = get_clock ();
       ((loop)->now_floor)          = ((loop)->mn_now);
-      ((loop)->rtmn_diff)          = ev_rt_now - ((loop)->mn_now);
+      ((loop)->rtmn_diff)          = ((loop)->ev_rt_now) - ((loop)->mn_now);
 #if EV_FEATURE_API
       ((loop)->invoke_cb)          = ev_invoke_pending;
 #endif
@@ -2050,7 +2038,7 @@ ev_loop_destroy (struct ev_loop *loop)
 
 #if EV_CLEANUP_ENABLE
   /* queue cleanup watchers (and execute them) */
-  if (expect_false (((loop)->cleanupcnt)))
+  if (unlikely (((loop)->cleanupcnt)))
     {
       queue_events (loop, (ev_watcher **)((loop)->cleanups), ((loop)->cleanupcnt), EV_CLEANUP);
       EV_INVOKE_PENDING;
@@ -2406,7 +2394,7 @@ ev_invoke_pending (struct ev_loop *loop)
 static inline void
 idle_reify (struct ev_loop *loop)
 {
-  if (expect_false (((loop)->idleall)))
+  if (unlikely (((loop)->idleall)))
     {
       int pri;
 
@@ -2469,17 +2457,17 @@ static void
 periodic_recalc (struct ev_loop *loop, ev_periodic *w)
 {
   ev_tstamp interval = w->interval > MIN_INTERVAL ? w->interval : MIN_INTERVAL;
-  ev_tstamp at = w->offset + interval * ev_floor ((ev_rt_now - w->offset) / interval);
+  ev_tstamp at = w->offset + interval * ev_floor ((((loop)->ev_rt_now) - w->offset) / interval);
 
   /* the above almost always errs on the low side */
-  while (at <= ev_rt_now)
+  while (at <= ((loop)->ev_rt_now))
     {
       ev_tstamp nat = at + w->interval;
 
-      /* when resolution fails us, we use ev_rt_now */
-      if (expect_false (nat == at))
+      /* when resolution fails us, we use ((loop)->ev_rt_now) */
+      if (unlikely (nat == at))
         {
-          at = ev_rt_now;
+          at = ((loop)->ev_rt_now);
           break;
         }
 
@@ -2495,7 +2483,7 @@ periodics_reify (struct ev_loop *loop)
 {
   EV_FREQUENT_CHECK;
 
-  while (((loop)->periodiccnt) && ANHE_at (((loop)->periodics) [HEAP0]) < ev_rt_now)
+  while (((loop)->periodiccnt) && ANHE_at (((loop)->periodics) [HEAP0]) < ((loop)->ev_rt_now))
     {
       do
         {
@@ -2506,9 +2494,9 @@ periodics_reify (struct ev_loop *loop)
           /* first reschedule or stop timer */
           if (w->reschedule_cb)
             {
-              ev_at (w) = w->reschedule_cb (w, ev_rt_now);
+              ev_at (w) = w->reschedule_cb (w, ((loop)->ev_rt_now));
 
-              assert (("libev: ev_periodic reschedule callback returned time in the past", ev_at (w) >= ev_rt_now));
+              assert (("libev: ev_periodic reschedule callback returned time in the past", ev_at (w) >= ((loop)->ev_rt_now)));
 
               ANHE_at_cache (((loop)->periodics) [HEAP0]);
               downheap (((loop)->periodics), ((loop)->periodiccnt), HEAP0);
@@ -2525,7 +2513,7 @@ periodics_reify (struct ev_loop *loop)
           EV_FREQUENT_CHECK;
           feed_reverse (loop, (ev_watcher *)w);
         }
-      while (((loop)->periodiccnt) && ANHE_at (((loop)->periodics) [HEAP0]) < ev_rt_now);
+      while (((loop)->periodiccnt) && ANHE_at (((loop)->periodics) [HEAP0]) < ((loop)->ev_rt_now));
 
       feed_reverse_done (loop, EV_PERIODIC);
     }
@@ -2545,7 +2533,7 @@ periodics_reschedule (struct ev_loop *loop)
       ev_periodic *w = (ev_periodic *)ANHE_w (((loop)->periodics) [i]);
 
       if (w->reschedule_cb)
-        ev_at (w) = w->reschedule_cb (w, ev_rt_now);
+        ev_at (w) = w->reschedule_cb (w, ((loop)->ev_rt_now));
       else if (w->interval)
         periodic_recalc (loop, w);
 
@@ -2577,7 +2565,7 @@ static inline void
 time_update (struct ev_loop *loop, ev_tstamp max_block)
 {
 #if EV_USE_MONOTONIC
-  if (expect_true (g_have_monotonic))
+  if (likely (g_have_monotonic))
     {
       int i;
       ev_tstamp odiff = ((loop)->rtmn_diff);
@@ -2586,14 +2574,14 @@ time_update (struct ev_loop *loop, ev_tstamp max_block)
 
       /* only fetch the realtime clock every 0.5*MIN_TIMEJUMP seconds */
       /* interpolate in the meantime */
-      if (expect_true (((loop)->mn_now) - ((loop)->now_floor) < MIN_TIMEJUMP * .5))
+      if (likely (((loop)->mn_now) - ((loop)->now_floor) < MIN_TIMEJUMP * .5))
         {
-          ev_rt_now = ((loop)->rtmn_diff) + ((loop)->mn_now);
+          ((loop)->ev_rt_now) = ((loop)->rtmn_diff) + ((loop)->mn_now);
           return;
         }
 
       ((loop)->now_floor) = ((loop)->mn_now);
-      ev_rt_now = ev_time ();
+      ((loop)->ev_rt_now) = ev_time ();
 
       /* loop a few times, before making important decisions.
        * on the choice of "4": one iteration isn't enough,
@@ -2606,14 +2594,14 @@ time_update (struct ev_loop *loop, ev_tstamp max_block)
       for (i = 4; --i; )
         {
           ev_tstamp diff;
-          ((loop)->rtmn_diff) = ev_rt_now - ((loop)->mn_now);
+          ((loop)->rtmn_diff) = ((loop)->ev_rt_now) - ((loop)->mn_now);
 
           diff = odiff - ((loop)->rtmn_diff);
 
-          if (expect_true ((diff < 0. ? -diff : diff) < MIN_TIMEJUMP))
+          if (likely ((diff < 0. ? -diff : diff) < MIN_TIMEJUMP))
             return; /* all is well */
 
-          ev_rt_now = ev_time ();
+          ((loop)->ev_rt_now) = ev_time ();
           ((loop)->mn_now)    = get_clock ();
           ((loop)->now_floor) = ((loop)->mn_now);
         }
@@ -2627,18 +2615,18 @@ time_update (struct ev_loop *loop, ev_tstamp max_block)
   else
 #endif
     {
-      ev_rt_now = ev_time ();
+      ((loop)->ev_rt_now) = ev_time ();
 
-      if (expect_false (((loop)->mn_now) > ev_rt_now || ev_rt_now > ((loop)->mn_now) + max_block + MIN_TIMEJUMP))
+      if (unlikely (((loop)->mn_now) > ((loop)->ev_rt_now) || ((loop)->ev_rt_now) > ((loop)->mn_now) + max_block + MIN_TIMEJUMP))
         {
           /* adjust timers. this is easy, as the offset is the same for all of them */
-          timers_reschedule (loop, ev_rt_now - ((loop)->mn_now));
+          timers_reschedule (loop, ((loop)->ev_rt_now) - ((loop)->mn_now));
 #if EV_PERIODIC_ENABLE
           periodics_reschedule (loop);
 #endif
         }
 
-      ((loop)->mn_now) = ev_rt_now;
+      ((loop)->mn_now) = ((loop)->ev_rt_now);
     }
 }
 
@@ -2661,8 +2649,8 @@ int ev_run (struct ev_loop *loop, int flags)
 #endif
 
 #ifndef _WIN32
-      if (expect_false (((loop)->curpid))) /* penalise the forking check even more */
-        if (expect_false (getpid () != ((loop)->curpid)))
+      if (unlikely (((loop)->curpid))) /* penalise the forking check even more */
+        if (unlikely (getpid () != ((loop)->curpid)))
           {
             ((loop)->curpid) = getpid ();
             ((loop)->postfork) = 1;
@@ -2671,7 +2659,7 @@ int ev_run (struct ev_loop *loop, int flags)
 
 #if EV_FORK_ENABLE
       /* we might have forked, so queue fork handlers */
-      if (expect_false (((loop)->postfork)))
+      if (unlikely (((loop)->postfork)))
         if (((loop)->forkcnt))
           {
             queue_events (loop, (ev_watcher **)((loop)->forks), ((loop)->forkcnt), EV_FORK);
@@ -2681,18 +2669,18 @@ int ev_run (struct ev_loop *loop, int flags)
 
 #if EV_PREPARE_ENABLE
       /* queue prepare watchers (and execute them) */
-      if (expect_false (((loop)->preparecnt)))
+      if (unlikely (((loop)->preparecnt)))
         {
           queue_events (loop, (ev_watcher **)((loop)->prepares), ((loop)->preparecnt), EV_PREPARE);
           EV_INVOKE_PENDING;
         }
 #endif
 
-      if (expect_false (((loop)->loop_done)))
+      if (unlikely (((loop)->loop_done)))
         break;
 
       /* we might have forked, so reify kernel state if necessary */
-      if (expect_false (((loop)->postfork)))
+      if (unlikely (((loop)->postfork)))
         loop_fork (loop);
 
       /* update fd-related kernel structures */
@@ -2714,7 +2702,7 @@ int ev_run (struct ev_loop *loop, int flags)
 
         ECB_MEMORY_FENCE; /* make sure ((loop)->pipe_write_wanted) is visible before we check for potential skips */
 
-        if (expect_true (!(flags & EVRUN_NOWAIT || ((loop)->idleall) || !((loop)->activecnt) || ((loop)->pipe_write_skipped))))
+        if (likely (!(flags & EVRUN_NOWAIT || ((loop)->idleall) || !((loop)->activecnt) || ((loop)->pipe_write_skipped))))
           {
             waittime = MAX_BLOCKTIME;
 
@@ -2727,29 +2715,29 @@ int ev_run (struct ev_loop *loop, int flags)
 #if EV_PERIODIC_ENABLE
             if (((loop)->periodiccnt))
               {
-                ev_tstamp to = ANHE_at (((loop)->periodics) [HEAP0]) - ev_rt_now;
+                ev_tstamp to = ANHE_at (((loop)->periodics) [HEAP0]) - ((loop)->ev_rt_now);
                 if (waittime > to) waittime = to;
               }
 #endif
 
             /* don't let timeouts decrease the waittime below ((loop)->timeout_blocktime) */
-            if (expect_false (waittime < ((loop)->timeout_blocktime)))
+            if (unlikely (waittime < ((loop)->timeout_blocktime)))
               waittime = ((loop)->timeout_blocktime);
 
             /* at this point, we NEED to wait, so we have to ensure */
             /* to pass a minimum nonzero value to the backend */
-            if (expect_false (waittime < ((loop)->backend_mintime)))
+            if (unlikely (waittime < ((loop)->backend_mintime)))
               waittime = ((loop)->backend_mintime);
 
             /* extra check because ((loop)->io_blocktime) is commonly 0 */
-            if (expect_false (((loop)->io_blocktime)))
+            if (unlikely (((loop)->io_blocktime)))
               {
                 sleeptime = ((loop)->io_blocktime) - (((loop)->mn_now) - prev_mn_now);
 
                 if (sleeptime > waittime - ((loop)->backend_mintime))
                   sleeptime = waittime - ((loop)->backend_mintime);
 
-                if (expect_true (sleeptime > 0.))
+                if (likely (sleeptime > 0.))
                   {
                     ev_sleep (sleeptime);
                     waittime -= sleeptime;
@@ -2774,7 +2762,7 @@ int ev_run (struct ev_loop *loop, int flags)
           }
 
 
-        /* update ev_rt_now, do magic */
+        /* update ((loop)->ev_rt_now), do magic */
         time_update (loop, waittime + sleeptime);
       }
 
@@ -2791,13 +2779,13 @@ int ev_run (struct ev_loop *loop, int flags)
 
 #if EV_CHECK_ENABLE
       /* queue check watchers, to be executed first */
-      if (expect_false (((loop)->checkcnt)))
+      if (unlikely (((loop)->checkcnt)))
         queue_events (loop, (ev_watcher **)((loop)->checks), ((loop)->checkcnt), EV_CHECK);
 #endif
 
       EV_INVOKE_PENDING;
     }
-  while (expect_true (
+  while (likely (
     ((loop)->activecnt)
     && !((loop)->loop_done)
     && !(flags & (EVRUN_ONCE | EVRUN_NOWAIT))
@@ -2871,7 +2859,7 @@ wlist_del (ev_watcher_list **head, ev_watcher_list *elem)
 {
   while (*head)
     {
-      if (expect_true (*head == elem))
+      if (likely (*head == elem))
         {
           *head = elem->next;
           break;
@@ -2898,7 +2886,7 @@ ev_clear_pending (struct ev_loop *loop, void *w) EV_THROW
   ev_watcher *w_ = (ev_watcher *)w;
   int pending = w_->pending;
 
-  if (expect_true (pending))
+  if (likely (pending))
     {
       ANPENDING *p = ((loop)->pendings) [ABSPRI (w_)] + pending - 1;
       p->w = (ev_watcher *)&((loop)->pending_w);
@@ -2941,7 +2929,7 @@ ev_io_start (struct ev_loop *loop, ev_io *w) EV_THROW
 {
   int fd = w->fd;
 
-  if (expect_false (ev_is_active (w)))
+  if (unlikely (ev_is_active (w)))
     return;
 
   assert (("libev: ev_io_start called with negative fd", fd >= 0));
@@ -2967,7 +2955,7 @@ void
 ev_io_stop (struct ev_loop *loop, ev_io *w) EV_THROW
 {
   clear_pending (loop, (ev_watcher *)w);
-  if (expect_false (!ev_is_active (w)))
+  if (unlikely (!ev_is_active (w)))
     return;
 
   assert (("libev: ev_io_stop called with illegal fd (must stay constant after start!)", w->fd >= 0 && w->fd < ((loop)->anfdmax)));
@@ -2986,7 +2974,7 @@ ev_io_stop (struct ev_loop *loop, ev_io *w) EV_THROW
 void
 ev_timer_start (struct ev_loop *loop, ev_timer *w) EV_THROW
 {
-  if (expect_false (ev_is_active (w)))
+  if (unlikely (ev_is_active (w)))
     return;
 
   ev_at (w) += ((loop)->mn_now);
@@ -3012,7 +3000,7 @@ void
 ev_timer_stop (struct ev_loop *loop, ev_timer *w) EV_THROW
 {
   clear_pending (loop, (ev_watcher *)w);
-  if (expect_false (!ev_is_active (w)))
+  if (unlikely (!ev_is_active (w)))
     return;
 
   EV_FREQUENT_CHECK;
@@ -3024,7 +3012,7 @@ ev_timer_stop (struct ev_loop *loop, ev_timer *w) EV_THROW
 
     --((loop)->timercnt);
 
-    if (expect_true (active < ((loop)->timercnt) + HEAP0))
+    if (likely (active < ((loop)->timercnt) + HEAP0))
       {
         ((loop)->timers) [active] = ((loop)->timers) [((loop)->timercnt) + HEAP0];
         adjustheap (((loop)->timers), ((loop)->timercnt), active);
@@ -3077,11 +3065,11 @@ ev_timer_remaining (struct ev_loop *loop, ev_timer *w) EV_THROW
 void
 ev_periodic_start (struct ev_loop *loop, ev_periodic *w) EV_THROW
 {
-  if (expect_false (ev_is_active (w)))
+  if (unlikely (ev_is_active (w)))
     return;
 
   if (w->reschedule_cb)
-    ev_at (w) = w->reschedule_cb (w, ev_rt_now);
+    ev_at (w) = w->reschedule_cb (w, ((loop)->ev_rt_now));
   else if (w->interval)
     {
       assert (("libev: ev_periodic_start called with negative interval value", w->interval >= 0.));
@@ -3109,7 +3097,7 @@ void
 ev_periodic_stop (struct ev_loop *loop, ev_periodic *w) EV_THROW
 {
   clear_pending (loop, (ev_watcher *)w);
-  if (expect_false (!ev_is_active (w)))
+  if (unlikely (!ev_is_active (w)))
     return;
 
   EV_FREQUENT_CHECK;
@@ -3121,7 +3109,7 @@ ev_periodic_stop (struct ev_loop *loop, ev_periodic *w) EV_THROW
 
     --((loop)->periodiccnt);
 
-    if (expect_true (active < ((loop)->periodiccnt) + HEAP0))
+    if (likely (active < ((loop)->periodiccnt) + HEAP0))
       {
         ((loop)->periodics) [active] = ((loop)->periodics) [((loop)->periodiccnt) + HEAP0];
         adjustheap (((loop)->periodics), ((loop)->periodiccnt), active);
@@ -3153,7 +3141,7 @@ ev_periodic_again (struct ev_loop *loop, ev_periodic *w) EV_THROW
 void
 ev_signal_start (struct ev_loop *loop, ev_signal *w) EV_THROW
 {
-  if (expect_false (ev_is_active (w)))
+  if (unlikely (ev_is_active (w)))
     return;
 
   assert (("libev: ev_signal_start called with illegal signal number", w->signum > 0 && w->signum < EV_NSIG));
@@ -3235,7 +3223,7 @@ void
 ev_signal_stop (struct ev_loop *loop, ev_signal *w) EV_THROW
 {
   clear_pending (loop, (ev_watcher *)w);
-  if (expect_false (!ev_is_active (w)))
+  if (unlikely (!ev_is_active (w)))
     return;
 
   EV_FREQUENT_CHECK;
@@ -3274,7 +3262,7 @@ void
 ev_child_start (struct ev_loop *loop, ev_child *w) EV_THROW
 {
   assert (("libev: child watchers are only supported in the default loop", loop == ev_default_loop_ptr));
-  if (expect_false (ev_is_active (w)))
+  if (unlikely (ev_is_active (w)))
     return;
 
   EV_FREQUENT_CHECK;
@@ -3289,7 +3277,7 @@ void
 ev_child_stop (struct ev_loop *loop, ev_child *w) EV_THROW
 {
   clear_pending (loop, (ev_watcher *)w);
-  if (expect_false (!ev_is_active (w)))
+  if (unlikely (!ev_is_active (w)))
     return;
 
   EV_FREQUENT_CHECK;
@@ -3607,7 +3595,7 @@ stat_timer_cb (struct ev_loop *loop, ev_timer *w_, int revents)
 void
 ev_stat_start (struct ev_loop *loop, ev_stat *w) EV_THROW
 {
-  if (expect_false (ev_is_active (w)))
+  if (unlikely (ev_is_active (w)))
     return;
 
   ev_stat_stat (loop, w);
@@ -3639,7 +3627,7 @@ void
 ev_stat_stop (struct ev_loop *loop, ev_stat *w) EV_THROW
 {
   clear_pending (loop, (ev_watcher *)w);
-  if (expect_false (!ev_is_active (w)))
+  if (unlikely (!ev_is_active (w)))
     return;
 
   EV_FREQUENT_CHECK;
@@ -3664,7 +3652,7 @@ ev_stat_stop (struct ev_loop *loop, ev_stat *w) EV_THROW
 void
 ev_idle_start (struct ev_loop *loop, ev_idle *w) EV_THROW
 {
-  if (expect_false (ev_is_active (w)))
+  if (unlikely (ev_is_active (w)))
     return;
 
   pri_adjust (loop, (ev_watcher *)w);
@@ -3688,7 +3676,7 @@ void
 ev_idle_stop (struct ev_loop *loop, ev_idle *w) EV_THROW
 {
   clear_pending (loop, (ev_watcher *)w);
-  if (expect_false (!ev_is_active (w)))
+  if (unlikely (!ev_is_active (w)))
     return;
 
   EV_FREQUENT_CHECK;
@@ -3711,7 +3699,7 @@ ev_idle_stop (struct ev_loop *loop, ev_idle *w) EV_THROW
 void
 ev_prepare_start (struct ev_loop *loop, ev_prepare *w) EV_THROW
 {
-  if (expect_false (ev_is_active (w)))
+  if (unlikely (ev_is_active (w)))
     return;
 
   EV_FREQUENT_CHECK;
@@ -3727,7 +3715,7 @@ void
 ev_prepare_stop (struct ev_loop *loop, ev_prepare *w) EV_THROW
 {
   clear_pending (loop, (ev_watcher *)w);
-  if (expect_false (!ev_is_active (w)))
+  if (unlikely (!ev_is_active (w)))
     return;
 
   EV_FREQUENT_CHECK;
@@ -3749,7 +3737,7 @@ ev_prepare_stop (struct ev_loop *loop, ev_prepare *w) EV_THROW
 void
 ev_check_start (struct ev_loop *loop, ev_check *w) EV_THROW
 {
-  if (expect_false (ev_is_active (w)))
+  if (unlikely (ev_is_active (w)))
     return;
 
   EV_FREQUENT_CHECK;
@@ -3765,7 +3753,7 @@ void
 ev_check_stop (struct ev_loop *loop, ev_check *w) EV_THROW
 {
   clear_pending (loop, (ev_watcher *)w);
-  if (expect_false (!ev_is_active (w)))
+  if (unlikely (!ev_is_active (w)))
     return;
 
   EV_FREQUENT_CHECK;
@@ -3846,7 +3834,7 @@ embed_idle_cb (struct ev_loop *loop, ev_idle *idle, int revents)
 void
 ev_embed_start (struct ev_loop *loop, ev_embed *w) EV_THROW
 {
-  if (expect_false (ev_is_active (w)))
+  if (unlikely (ev_is_active (w)))
     return;
 
   {
@@ -3878,7 +3866,7 @@ void
 ev_embed_stop (struct ev_loop *loop, ev_embed *w) EV_THROW
 {
   clear_pending (loop, (ev_watcher *)w);
-  if (expect_false (!ev_is_active (w)))
+  if (unlikely (!ev_is_active (w)))
     return;
 
   EV_FREQUENT_CHECK;
@@ -3897,7 +3885,7 @@ ev_embed_stop (struct ev_loop *loop, ev_embed *w) EV_THROW
 void
 ev_fork_start (struct ev_loop *loop, ev_fork *w) EV_THROW
 {
-  if (expect_false (ev_is_active (w)))
+  if (unlikely (ev_is_active (w)))
     return;
 
   EV_FREQUENT_CHECK;
@@ -3913,7 +3901,7 @@ void
 ev_fork_stop (struct ev_loop *loop, ev_fork *w) EV_THROW
 {
   clear_pending (loop, (ev_watcher *)w);
-  if (expect_false (!ev_is_active (w)))
+  if (unlikely (!ev_is_active (w)))
     return;
 
   EV_FREQUENT_CHECK;
@@ -3935,7 +3923,7 @@ ev_fork_stop (struct ev_loop *loop, ev_fork *w) EV_THROW
 void
 ev_cleanup_start (struct ev_loop *loop, ev_cleanup *w) EV_THROW
 {
-  if (expect_false (ev_is_active (w)))
+  if (unlikely (ev_is_active (w)))
     return;
 
   EV_FREQUENT_CHECK;
@@ -3953,7 +3941,7 @@ void
 ev_cleanup_stop (struct ev_loop *loop, ev_cleanup *w) EV_THROW
 {
   clear_pending (loop, (ev_watcher *)w);
-  if (expect_false (!ev_is_active (w)))
+  if (unlikely (!ev_is_active (w)))
     return;
 
   EV_FREQUENT_CHECK;
@@ -3973,10 +3961,9 @@ ev_cleanup_stop (struct ev_loop *loop, ev_cleanup *w) EV_THROW
 #endif
 
 #if EV_ASYNC_ENABLE
-void
-ev_async_start (struct ev_loop *loop, ev_async *w) EV_THROW
+void ev_async_start (struct ev_loop *loop, ev_async *w) EV_THROW
 {
-  if (expect_false (ev_is_active (w)))
+  if (unlikely (ev_is_active (w)))
     return;
 
   w->sent = 0;
@@ -3996,7 +3983,7 @@ void
 ev_async_stop (struct ev_loop *loop, ev_async *w) EV_THROW
 {
   clear_pending (loop, (ev_watcher *)w);
-  if (expect_false (!ev_is_active (w)))
+  if (unlikely (!ev_is_active (w)))
     return;
 
   EV_FREQUENT_CHECK;
@@ -4013,11 +4000,10 @@ ev_async_stop (struct ev_loop *loop, ev_async *w) EV_THROW
   EV_FREQUENT_CHECK;
 }
 
-void
-ev_async_send (struct ev_loop *loop, ev_async *w) EV_THROW
+void ev_async_send (struct ev_loop *loop, ev_async *w) EV_THROW
 {
-  w->sent = 1;
-  evpipe_write (loop, &((loop)->async_pending));
+	w->sent = 1;
+	evpipe_write (loop, &((loop)->async_pending));
 }
 #endif
 
@@ -4063,7 +4049,7 @@ void ev_once (struct ev_loop *loop, int fd, int events, ev_tstamp timeout,
 {
   struct ev_once *once = (struct ev_once *)ev_malloc (sizeof (struct ev_once));
 
-  if (expect_false (!once))
+  if (unlikely (!once))
     {
       cb (EV_ERROR | EV_READ | EV_WRITE | EV_TIMER, arg);
       return;

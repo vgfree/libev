@@ -103,7 +103,7 @@ kqueue_poll (struct ev_loop *loop, ev_tstamp timeout)
   EV_ACQUIRE_CB;
   ((loop)->kqueue_changecnt) = 0;
 
-  if (expect_false (res < 0))
+  if (unlikely (res < 0))
     {
       if (errno != EINTR)
         ev_syserr ("(libev) kevent");
@@ -115,7 +115,7 @@ kqueue_poll (struct ev_loop *loop, ev_tstamp timeout)
     {
       int fd = ((loop)->kqueue_events) [i].ident;
 
-      if (expect_false (((loop)->kqueue_events) [i].flags & EV_ERROR))
+      if (unlikely (((loop)->kqueue_events) [i].flags & EV_ERROR))
         {
           int err = ((loop)->kqueue_events) [i].data;
 
@@ -145,7 +145,7 @@ kqueue_poll (struct ev_loop *loop, ev_tstamp timeout)
         );
     }
 
-  if (expect_false (res == ((loop)->kqueue_eventmax)))
+  if (unlikely (res == ((loop)->kqueue_eventmax)))
     {
       ev_free (((loop)->kqueue_events));
       ((loop)->kqueue_eventmax) = array_nextsize (sizeof (struct kevent), ((loop)->kqueue_eventmax), ((loop)->kqueue_eventmax) + 1);
