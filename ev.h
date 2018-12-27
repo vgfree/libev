@@ -63,7 +63,7 @@ EV_CPP(extern "C" {)
 
 #ifndef EV_FEATURES
 # if defined __OPTIMIZE_SIZE__
-#  define EV_FEATURES 0x7c
+#  define EV_FEATURES 0x7c	/*no EV_FEATURE_CODE and no EV_FEATURE_DATA*/
 # else
 #  define EV_FEATURES 0x7f
 # endif

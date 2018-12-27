@@ -3645,49 +3645,49 @@ ev_stat_stop (struct ev_loop *loop, ev_stat *w) EV_THROW
 #endif
 
 #if EV_IDLE_ENABLE
-void
-ev_idle_start (struct ev_loop *loop, ev_idle *w) EV_THROW
+void ev_idle_start (struct ev_loop *loop, ev_idle *w) EV_THROW
 {
-  if (unlikely (ev_is_active (w)))
-    return;
+	if (unlikely (ev_is_active (w)))
+		return;
 
-  pri_adjust (loop, (ev_watcher *)w);
+	pri_adjust (loop, (ev_watcher *)w);
 
-  EV_FREQUENT_CHECK;
+	EV_FREQUENT_CHECK;
 
-  {
-    int active = ++((loop)->idlecnt) [ABSPRI (w)];
+	{
+		int pri = ABSPRI (w);
+		int active = ++loop->idlecnt [pri];
 
-    ++((loop)->idleall);
-    ev_start (loop, (ev_watcher *)w, active);
+		++(loop->idleall);
+		ev_start (loop, (ev_watcher *)w, active);
 
-    array_needsize (ev_idle *, ((loop)->idles) [ABSPRI (w)], ((loop)->idlemax) [ABSPRI (w)], active, EMPTY2);
-    ((loop)->idles) [ABSPRI (w)][active - 1] = w;
-  }
+		array_needsize (ev_idle *, loop->idles [pri], loop->idlemax [pri], active, EMPTY2);
+		loop->idles [pri][active - 1] = w;
+	}
 
-  EV_FREQUENT_CHECK;
+	EV_FREQUENT_CHECK;
 }
 
-void
-ev_idle_stop (struct ev_loop *loop, ev_idle *w) EV_THROW
+void ev_idle_stop (struct ev_loop *loop, ev_idle *w) EV_THROW
 {
-  clear_pending (loop, (ev_watcher *)w);
-  if (unlikely (!ev_is_active (w)))
-    return;
+	clear_pending (loop, (ev_watcher *)w);
+	if (unlikely (!ev_is_active (w)))
+		return;
 
-  EV_FREQUENT_CHECK;
+	EV_FREQUENT_CHECK;
 
-  {
-    int active = ev_active (w);
+	{
+		int pri = ABSPRI (w);
+		int active = ev_active (w);
 
-    ((loop)->idles) [ABSPRI (w)][active - 1] = ((loop)->idles) [ABSPRI (w)][--((loop)->idlecnt) [ABSPRI (w)]];
-    ev_active (((loop)->idles) [ABSPRI (w)][active - 1]) = active;
+		loop->idles [pri][active - 1] = loop->idles [pri][--loop->idlecnt [pri]];
+		ev_active (loop->idles [pri][active - 1]) = active;
 
-    ev_stop (loop, (ev_watcher *)w);
-    --((loop)->idleall);
-  }
+		ev_stop (loop, (ev_watcher *)w);
+		--(loop->idleall);
+	}
 
-  EV_FREQUENT_CHECK;
+	EV_FREQUENT_CHECK;
 }
 #endif
 
