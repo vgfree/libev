@@ -1,7 +1,7 @@
 /*
  * libev event processing core, watcher management
  *
- * Copyright (c) 2007,2008,2009,2010,2011,2012,2013 Marc Alexander Lehmann <libev@schmorp.de>
+ * Copyright (c) 2007-2018 Marc Alexander Lehmann <libev@schmorp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modifica-
@@ -164,6 +164,16 @@
  
 #endif
 
+/* OS X, in its infinite idiocy, actually HARDCODES
+ * a limit of 1024 into their select. Where people have brains,
+ * OS X engineers apparently have a vacuum. Or maybe they were
+ * ordered to have a vacuum, or they do anything for money.
+ * This might help. Or not.
+ * Note that this must be defined early, as other include files
+ * will rely on this define as well.
+ */
+#define _DARWIN_UNLIMITED_SELECT 1
+
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
@@ -198,14 +208,6 @@
 #  define EV_SELECT_IS_WINSOCKET 1
 # endif
 #endif
-
-/* OS X, in its infinite idiocy, actually HARDCODES
- * a limit of 1024 into their select. Where people have brains,
- * OS X engineers apparently have a vacuum. Or maybe they were
- * ordered to have a vacuum, or they do anything for money.
- * This might help. Or not.
- */
-#define _DARWIN_UNLIMITED_SELECT 1
 
 /* this block tries to deduce configuration from header-defined symbols and defaults */
 
@@ -809,10 +811,10 @@ static unsigned int ev_linux_version (void)
 /*****************************************************************************/
 
 
-static void (*syserr_cb)(const char *msg) EV_THROW;
+static void (*syserr_cb)(const char *msg) EV_NOEXCEPT;
 
 
-void ev_set_syserr_cb (void (*cb)(const char *msg) EV_THROW) EV_THROW
+void ev_set_syserr_cb (void (*cb)(const char *msg) EV_NOEXCEPT) EV_NOEXCEPT
 {
 	syserr_cb = cb;
 }
@@ -831,7 +833,7 @@ static void ev_syserr (const char *msg)
 	}
 }
 
-static void *ev_realloc_emul (void *ptr, long size) EV_THROW
+static void *ev_realloc_emul (void *ptr, long size) EV_NOEXCEPT
 {
 	/* some systems, notably openbsd and darwin, fail to properly
 	 * implement realloc (x, 0) (as required by both ansi c-89 and
@@ -847,10 +849,10 @@ static void *ev_realloc_emul (void *ptr, long size) EV_THROW
 	return 0;
 }
 
-static void *(*alloc)(void *ptr, long size) EV_THROW = ev_realloc_emul;
+static void *(*alloc)(void *ptr, long size) EV_NOEXCEPT = ev_realloc_emul;
 
 
-void ev_set_allocator (void *(*cb)(void *ptr, long size) EV_THROW) EV_THROW
+void ev_set_allocator (void *(*cb)(void *ptr, long size) EV_NOEXCEPT) EV_NOEXCEPT
 {
 	alloc = cb;
 }
@@ -957,7 +959,7 @@ EV_API_DECL struct ev_loop *ev_default_loop_ptr = 0; /* needs to be initialised 
 /*****************************************************************************/
 
 #ifndef EV_HAVE_EV_TIME
-ev_tstamp ev_time (void) EV_THROW
+ev_tstamp ev_time (void) EV_NOEXCEPT
 {
 #if EV_USE_REALTIME
 	if (likely (g_have_realtime))
@@ -988,12 +990,12 @@ static inline ev_tstamp get_clock (void)
 	return ev_time ();
 }
 
-ev_tstamp ev_now (struct ev_loop *loop) EV_THROW
+ev_tstamp ev_now (struct ev_loop *loop) EV_NOEXCEPT
 {
   return ((loop)->ev_rt_now);
 }
 
-void ev_sleep (ev_tstamp delay) EV_THROW
+void ev_sleep (ev_tstamp delay) EV_NOEXCEPT
 {
 	if (delay > 0.) {
 #if EV_USE_NANOSLEEP
@@ -1002,6 +1004,8 @@ void ev_sleep (ev_tstamp delay) EV_THROW
 		EV_TS_SET (ts, delay);
 		nanosleep (&ts, 0);
 #elif defined _WIN32
+		/* maybe this should round up, as ms is very low resolution */
+		/* compared to select (µs) or nanosleep (ns) */
 		Sleep ((unsigned long)(delay * 1e3));
 #else
 		struct timeval tv;
@@ -1086,7 +1090,7 @@ pendingcb (struct ev_loop *loop, ev_prepare *w, int revents)
 
 
 void
-ev_feed_event (struct ev_loop *loop, void *w, int revents) EV_THROW
+ev_feed_event (struct ev_loop *loop, void *w, int revents) EV_NOEXCEPT
 {
   ev_watcher *w_ = (ev_watcher *)w;
   int pri = ABSPRI (w_);
@@ -1157,7 +1161,7 @@ fd_event (struct ev_loop *loop, int fd, int revents)
 }
 
 void
-ev_feed_fd_event (struct ev_loop *loop, int fd, int revents) EV_THROW
+ev_feed_fd_event (struct ev_loop *loop, int fd, int revents) EV_NOEXCEPT
 {
   if (fd >= 0 && fd < ((loop)->anfdmax))
     fd_event_nocheck (loop, fd, revents);
@@ -1561,7 +1565,7 @@ static inline void evpipe_write (struct ev_loop *loop, EV_ATOMIC_T *flag)
 #ifdef _WIN32
 			WSABUF buf;
 			DWORD sent;
-			buf.buf = &buf;
+			buf.buf = (char *)&buf;
 			buf.len = 1;
 			WSASend (EV_FD_TO_WIN32_HANDLE (((loop)->evpipe) [1]), &buf, 1, &sent, 0, 0, 0);
 #else
@@ -1643,7 +1647,7 @@ pipecb (struct ev_loop *loop, ev_io *iow, int revents)
 /*****************************************************************************/
 
 void
-ev_feed_signal (int signum) EV_THROW
+ev_feed_signal (int signum) EV_NOEXCEPT
 {
   struct ev_loop *loop;
   ECB_MEMORY_FENCE_ACQUIRE;
@@ -1668,7 +1672,7 @@ ev_sighandler (int signum)
 
 
 void
-ev_feed_signal_event (struct ev_loop *loop, int signum) EV_THROW
+ev_feed_signal_event (struct ev_loop *loop, int signum) EV_NOEXCEPT
 {
   ev_watcher_list *w;
 
@@ -1793,13 +1797,13 @@ childcb (struct ev_loop *loop, ev_signal *sw, int revents)
 #endif
 
  int
-ev_version_major (void) EV_THROW
+ev_version_major (void) EV_NOEXCEPT
 {
   return EV_VERSION_MAJOR;
 }
 
  int
-ev_version_minor (void) EV_THROW
+ev_version_minor (void) EV_NOEXCEPT
 {
   return EV_VERSION_MINOR;
 }
@@ -1818,7 +1822,7 @@ enable_secure (void)
 
 
 unsigned int
-ev_supported_backends (void) EV_THROW
+ev_supported_backends (void) EV_NOEXCEPT
 {
   unsigned int flags = 0;
 
@@ -1833,7 +1837,7 @@ ev_supported_backends (void) EV_THROW
 
 
 unsigned int
-ev_recommended_backends (void) EV_THROW
+ev_recommended_backends (void) EV_NOEXCEPT
 {
   unsigned int flags = ev_supported_backends ();
 
@@ -1856,7 +1860,7 @@ ev_recommended_backends (void) EV_THROW
 
 
 unsigned int
-ev_embeddable_backends (void) EV_THROW
+ev_embeddable_backends (void) EV_NOEXCEPT
 {
   int flags = EVBACKEND_EPOLL | EVBACKEND_KQUEUE | EVBACKEND_PORT;
 
@@ -1868,56 +1872,56 @@ ev_embeddable_backends (void) EV_THROW
 }
 
 unsigned int
-ev_backend (struct ev_loop *loop) EV_THROW
+ev_backend (struct ev_loop *loop) EV_NOEXCEPT
 {
   return ((loop)->backend);
 }
 
 #if EV_FEATURE_API
 unsigned int
-ev_iteration (struct ev_loop *loop) EV_THROW
+ev_iteration (struct ev_loop *loop) EV_NOEXCEPT
 {
   return ((loop)->loop_count);
 }
 
 unsigned int
-ev_depth (struct ev_loop *loop) EV_THROW
+ev_depth (struct ev_loop *loop) EV_NOEXCEPT
 {
   return ((loop)->loop_depth);
 }
 
 void
-ev_set_io_collect_interval (struct ev_loop *loop, ev_tstamp interval) EV_THROW
+ev_set_io_collect_interval (struct ev_loop *loop, ev_tstamp interval) EV_NOEXCEPT
 {
   ((loop)->io_blocktime) = interval;
 }
 
 void
-ev_set_timeout_collect_interval (struct ev_loop *loop, ev_tstamp interval) EV_THROW
+ev_set_timeout_collect_interval (struct ev_loop *loop, ev_tstamp interval) EV_NOEXCEPT
 {
   ((loop)->timeout_blocktime) = interval;
 }
 
 void
-ev_set_userdata (struct ev_loop *loop, void *data) EV_THROW
+ev_set_userdata (struct ev_loop *loop, void *data) EV_NOEXCEPT
 {
   ((loop)->userdata) = data;
 }
 
 void *
-ev_userdata (struct ev_loop *loop) EV_THROW
+ev_userdata (struct ev_loop *loop) EV_NOEXCEPT
 {
   return ((loop)->userdata);
 }
 
 void
-ev_set_invoke_pending_cb (struct ev_loop *loop, ev_loop_callback invoke_pending_cb) EV_THROW
+ev_set_invoke_pending_cb (struct ev_loop *loop, ev_loop_callback invoke_pending_cb) EV_NOEXCEPT
 {
   ((loop)->invoke_cb) = invoke_pending_cb;
 }
 
 void
-ev_set_loop_release_cb (struct ev_loop *loop, void (*release)(struct ev_loop *loop) EV_THROW, void (*acquire)(struct ev_loop *loop) EV_THROW) EV_THROW
+ev_set_loop_release_cb (struct ev_loop *loop, void (*release)(struct ev_loop *loop) EV_NOEXCEPT, void (*acquire)(struct ev_loop *loop) EV_NOEXCEPT) EV_NOEXCEPT
 {
   ((loop)->release_cb) = release;
   ((loop)->acquire_cb) = acquire;
@@ -1927,7 +1931,7 @@ ev_set_loop_release_cb (struct ev_loop *loop, void (*release)(struct ev_loop *lo
 /* initialise a loop structure, must be zero-initialised */
  
 static void
-loop_init (struct ev_loop *loop, unsigned int flags) EV_THROW
+loop_init (struct ev_loop *loop, unsigned int flags) EV_NOEXCEPT
 {
   if (!((loop)->backend))
     {
@@ -2171,7 +2175,7 @@ loop_fork (struct ev_loop *loop)
 
 
 struct ev_loop *
-ev_loop_new (unsigned int flags) EV_THROW
+ev_loop_new (unsigned int flags) EV_NOEXCEPT
 {
   struct ev_loop *loop = (struct ev_loop *)ev_malloc (sizeof (struct ev_loop));
 
@@ -2227,7 +2231,7 @@ array_verify (struct ev_loop *loop, ev_watcher **ws, int cnt)
 
 #if EV_FEATURE_API
 void 
-ev_verify (struct ev_loop *loop) EV_THROW
+ev_verify (struct ev_loop *loop) EV_NOEXCEPT
 {
 #if EV_VERIFY
   int i;
@@ -2314,7 +2318,7 @@ ev_verify (struct ev_loop *loop) EV_THROW
 
 
 struct ev_loop *
-ev_default_loop (unsigned int flags) EV_THROW
+ev_default_loop (unsigned int flags) EV_NOEXCEPT
 {
   if (!ev_default_loop_ptr)
     {
@@ -2339,7 +2343,7 @@ ev_default_loop (unsigned int flags) EV_THROW
 }
 
 void
-ev_loop_fork (struct ev_loop *loop) EV_THROW
+ev_loop_fork (struct ev_loop *loop) EV_NOEXCEPT
 {
   ((loop)->postfork) = 1;
 }
@@ -2353,7 +2357,7 @@ ev_invoke (struct ev_loop *loop, void *w, int revents)
 }
 
 unsigned int
-ev_pending_count (struct ev_loop *loop) EV_THROW
+ev_pending_count (struct ev_loop *loop) EV_NOEXCEPT
 {
   int pri;
   unsigned int count = 0;
@@ -2370,10 +2374,11 @@ ev_invoke_pending (struct ev_loop *loop)
 {
   ((loop)->pendingpri) = NUMPRI;
 
-  while (((loop)->pendingpri)) /* ((loop)->pendingpri) possibly gets modified in the inner loop */
+  do
     {
       --((loop)->pendingpri);
 
+      /* pendingpri possibly gets modified in the inner loop */
       while (((loop)->pendingcnt) [((loop)->pendingpri)])
         {
           ANPENDING *p = ((loop)->pendings) [((loop)->pendingpri)] + --((loop)->pendingcnt) [((loop)->pendingpri)];
@@ -2383,6 +2388,7 @@ ev_invoke_pending (struct ev_loop *loop)
           EV_FREQUENT_CHECK;
         }
     }
+  while (((loop)->pendingpri));
 }
 
 #if EV_IDLE_ENABLE
@@ -2799,37 +2805,37 @@ int ev_run (struct ev_loop *loop, int flags)
 }
 
 void
-ev_break (struct ev_loop *loop, int how) EV_THROW
+ev_break (struct ev_loop *loop, int how) EV_NOEXCEPT
 {
   ((loop)->loop_done) = how;
 }
 
 void
-ev_ref (struct ev_loop *loop) EV_THROW
+ev_ref (struct ev_loop *loop) EV_NOEXCEPT
 {
   ++((loop)->activecnt);
 }
 
 void
-ev_unref (struct ev_loop *loop) EV_THROW
+ev_unref (struct ev_loop *loop) EV_NOEXCEPT
 {
   --((loop)->activecnt);
 }
 
 void
-ev_now_update (struct ev_loop *loop) EV_THROW
+ev_now_update (struct ev_loop *loop) EV_NOEXCEPT
 {
   time_update (loop, 1e100);
 }
 
 void
-ev_suspend (struct ev_loop *loop) EV_THROW
+ev_suspend (struct ev_loop *loop) EV_NOEXCEPT
 {
   ev_now_update (loop);
 }
 
 void
-ev_resume (struct ev_loop *loop) EV_THROW
+ev_resume (struct ev_loop *loop) EV_NOEXCEPT
 {
   ev_tstamp mn_prev = ((loop)->mn_now);
 
@@ -2877,7 +2883,7 @@ clear_pending (struct ev_loop *loop, ev_watcher *w)
 }
 
 int
-ev_clear_pending (struct ev_loop *loop, void *w) EV_THROW
+ev_clear_pending (struct ev_loop *loop, void *w) EV_NOEXCEPT
 {
   ev_watcher *w_ = (ev_watcher *)w;
   int pending = w_->pending;
@@ -2917,7 +2923,7 @@ static inline void ev_stop (struct ev_loop *loop, ev_watcher *w)
 /*****************************************************************************/
 
 
-void ev_io_start (struct ev_loop *loop, ev_io *w) EV_THROW
+void ev_io_start (struct ev_loop *loop, ev_io *w) EV_NOEXCEPT
 {
 	int fd = w->fd;
 
@@ -2944,7 +2950,7 @@ void ev_io_start (struct ev_loop *loop, ev_io *w) EV_THROW
 
 
 void
-ev_io_stop (struct ev_loop *loop, ev_io *w) EV_THROW
+ev_io_stop (struct ev_loop *loop, ev_io *w) EV_NOEXCEPT
 {
   clear_pending (loop, (ev_watcher *)w);
   if (unlikely (!ev_is_active (w)))
@@ -2963,7 +2969,7 @@ ev_io_stop (struct ev_loop *loop, ev_io *w) EV_THROW
 }
 
 
-void ev_timer_start (struct ev_loop *loop, ev_timer *w) EV_THROW
+void ev_timer_start (struct ev_loop *loop, ev_timer *w) EV_NOEXCEPT
 {
 	if (unlikely (ev_is_active (w)))
 		return;
@@ -2993,7 +2999,7 @@ void ev_timer_start (struct ev_loop *loop, ev_timer *w) EV_THROW
 
 
 void
-ev_timer_stop (struct ev_loop *loop, ev_timer *w) EV_THROW
+ev_timer_stop (struct ev_loop *loop, ev_timer *w) EV_NOEXCEPT
 {
   clear_pending (loop, (ev_watcher *)w);
   if (unlikely (!ev_is_active (w)))
@@ -3024,7 +3030,7 @@ ev_timer_stop (struct ev_loop *loop, ev_timer *w) EV_THROW
 
 
 void
-ev_timer_again (struct ev_loop *loop, ev_timer *w) EV_THROW
+ev_timer_again (struct ev_loop *loop, ev_timer *w) EV_NOEXCEPT
 {
   EV_FREQUENT_CHECK;
 
@@ -3051,7 +3057,7 @@ ev_timer_again (struct ev_loop *loop, ev_timer *w) EV_THROW
 }
 
 ev_tstamp
-ev_timer_remaining (struct ev_loop *loop, ev_timer *w) EV_THROW
+ev_timer_remaining (struct ev_loop *loop, ev_timer *w) EV_NOEXCEPT
 {
   return ev_at (w) - (ev_is_active (w) ? ((loop)->mn_now) : 0.);
 }
@@ -3059,7 +3065,7 @@ ev_timer_remaining (struct ev_loop *loop, ev_timer *w) EV_THROW
 #if EV_PERIODIC_ENABLE
 
 void
-ev_periodic_start (struct ev_loop *loop, ev_periodic *w) EV_THROW
+ev_periodic_start (struct ev_loop *loop, ev_periodic *w) EV_NOEXCEPT
 {
   if (unlikely (ev_is_active (w)))
     return;
@@ -3090,7 +3096,7 @@ ev_periodic_start (struct ev_loop *loop, ev_periodic *w) EV_THROW
 
 
 void
-ev_periodic_stop (struct ev_loop *loop, ev_periodic *w) EV_THROW
+ev_periodic_stop (struct ev_loop *loop, ev_periodic *w) EV_NOEXCEPT
 {
   clear_pending (loop, (ev_watcher *)w);
   if (unlikely (!ev_is_active (w)))
@@ -3119,7 +3125,7 @@ ev_periodic_stop (struct ev_loop *loop, ev_periodic *w) EV_THROW
 
 
 void
-ev_periodic_again (struct ev_loop *loop, ev_periodic *w) EV_THROW
+ev_periodic_again (struct ev_loop *loop, ev_periodic *w) EV_NOEXCEPT
 {
   /* TODO: use adjustheap and recalculation */
   ev_periodic_stop (loop, w);
@@ -3135,7 +3141,7 @@ ev_periodic_again (struct ev_loop *loop, ev_periodic *w) EV_THROW
 
 
 void
-ev_signal_start (struct ev_loop *loop, ev_signal *w) EV_THROW
+ev_signal_start (struct ev_loop *loop, ev_signal *w) EV_NOEXCEPT
 {
   if (unlikely (ev_is_active (w)))
     return;
@@ -3216,7 +3222,7 @@ ev_signal_start (struct ev_loop *loop, ev_signal *w) EV_THROW
 
 
 void
-ev_signal_stop (struct ev_loop *loop, ev_signal *w) EV_THROW
+ev_signal_stop (struct ev_loop *loop, ev_signal *w) EV_NOEXCEPT
 {
   clear_pending (loop, (ev_watcher *)w);
   if (unlikely (!ev_is_active (w)))
@@ -3255,7 +3261,7 @@ ev_signal_stop (struct ev_loop *loop, ev_signal *w) EV_THROW
 #if EV_CHILD_ENABLE
 
 void
-ev_child_start (struct ev_loop *loop, ev_child *w) EV_THROW
+ev_child_start (struct ev_loop *loop, ev_child *w) EV_NOEXCEPT
 {
   assert (("libev: child watchers are only supported in the default loop", loop == ev_default_loop_ptr));
   if (unlikely (ev_is_active (w)))
@@ -3270,7 +3276,7 @@ ev_child_start (struct ev_loop *loop, ev_child *w) EV_THROW
 }
 
 void
-ev_child_stop (struct ev_loop *loop, ev_child *w) EV_THROW
+ev_child_stop (struct ev_loop *loop, ev_child *w) EV_NOEXCEPT
 {
   clear_pending (loop, (ev_watcher *)w);
   if (unlikely (!ev_is_active (w)))
@@ -3539,7 +3545,7 @@ infy_fork (struct ev_loop *loop)
 #endif
 
 void
-ev_stat_stat (struct ev_loop *loop, ev_stat *w) EV_THROW
+ev_stat_stat (struct ev_loop *loop, ev_stat *w) EV_NOEXCEPT
 {
   if (lstat (w->path, &w->attr) < 0)
     w->attr.st_nlink = 0;
@@ -3589,7 +3595,7 @@ stat_timer_cb (struct ev_loop *loop, ev_timer *w_, int revents)
 }
 
 void
-ev_stat_start (struct ev_loop *loop, ev_stat *w) EV_THROW
+ev_stat_start (struct ev_loop *loop, ev_stat *w) EV_NOEXCEPT
 {
   if (unlikely (ev_is_active (w)))
     return;
@@ -3620,7 +3626,7 @@ ev_stat_start (struct ev_loop *loop, ev_stat *w) EV_THROW
 }
 
 void
-ev_stat_stop (struct ev_loop *loop, ev_stat *w) EV_THROW
+ev_stat_stop (struct ev_loop *loop, ev_stat *w) EV_NOEXCEPT
 {
   clear_pending (loop, (ev_watcher *)w);
   if (unlikely (!ev_is_active (w)))
@@ -3645,7 +3651,7 @@ ev_stat_stop (struct ev_loop *loop, ev_stat *w) EV_THROW
 #endif
 
 #if EV_IDLE_ENABLE
-void ev_idle_start (struct ev_loop *loop, ev_idle *w) EV_THROW
+void ev_idle_start (struct ev_loop *loop, ev_idle *w) EV_NOEXCEPT
 {
 	if (unlikely (ev_is_active (w)))
 		return;
@@ -3668,7 +3674,7 @@ void ev_idle_start (struct ev_loop *loop, ev_idle *w) EV_THROW
 	EV_FREQUENT_CHECK;
 }
 
-void ev_idle_stop (struct ev_loop *loop, ev_idle *w) EV_THROW
+void ev_idle_stop (struct ev_loop *loop, ev_idle *w) EV_NOEXCEPT
 {
 	clear_pending (loop, (ev_watcher *)w);
 	if (unlikely (!ev_is_active (w)))
@@ -3692,7 +3698,7 @@ void ev_idle_stop (struct ev_loop *loop, ev_idle *w) EV_THROW
 #endif
 
 #if EV_PREPARE_ENABLE
-void ev_prepare_start (struct ev_loop *loop, ev_prepare *w) EV_THROW
+void ev_prepare_start (struct ev_loop *loop, ev_prepare *w) EV_NOEXCEPT
 {
 	if (unlikely (ev_is_active (w)))
 		return;
@@ -3706,7 +3712,7 @@ void ev_prepare_start (struct ev_loop *loop, ev_prepare *w) EV_THROW
 	EV_FREQUENT_CHECK;
 }
 
-void ev_prepare_stop (struct ev_loop *loop, ev_prepare *w) EV_THROW
+void ev_prepare_stop (struct ev_loop *loop, ev_prepare *w) EV_NOEXCEPT
 {
 	clear_pending (loop, (ev_watcher *)w);
 	if (unlikely (!ev_is_active (w)))
@@ -3728,7 +3734,7 @@ void ev_prepare_stop (struct ev_loop *loop, ev_prepare *w) EV_THROW
 #endif
 
 #if EV_CHECK_ENABLE
-void ev_check_start (struct ev_loop *loop, ev_check *w) EV_THROW
+void ev_check_start (struct ev_loop *loop, ev_check *w) EV_NOEXCEPT
 {
 	if (unlikely (ev_is_active (w)))
 		return;
@@ -3742,7 +3748,7 @@ void ev_check_start (struct ev_loop *loop, ev_check *w) EV_THROW
 	EV_FREQUENT_CHECK;
 }
 
-void ev_check_stop (struct ev_loop *loop, ev_check *w) EV_THROW
+void ev_check_stop (struct ev_loop *loop, ev_check *w) EV_NOEXCEPT
 {
 	clear_pending (loop, (ev_watcher *)w);
 	if (unlikely (!ev_is_active (w)))
@@ -3765,7 +3771,7 @@ void ev_check_stop (struct ev_loop *loop, ev_check *w) EV_THROW
 
 #if EV_EMBED_ENABLE
 
-void ev_embed_sweep (struct ev_loop *loop, ev_embed *w) EV_THROW
+void ev_embed_sweep (struct ev_loop *loop, ev_embed *w) EV_NOEXCEPT
 {
 	ev_run (w->other, EVRUN_NOWAIT);
 }
@@ -3819,7 +3825,7 @@ static void embed_idle_cb (struct ev_loop *loop, ev_idle *idle, int revents)
 }
 #endif
 
-void ev_embed_start (struct ev_loop *loop, ev_embed *w) EV_THROW
+void ev_embed_start (struct ev_loop *loop, ev_embed *w) EV_NOEXCEPT
 {
 	if (unlikely (ev_is_active (w))) {
 		return;
@@ -3850,7 +3856,7 @@ void ev_embed_start (struct ev_loop *loop, ev_embed *w) EV_THROW
 	EV_FREQUENT_CHECK;
 }
 
-void ev_embed_stop (struct ev_loop *loop, ev_embed *w) EV_THROW
+void ev_embed_stop (struct ev_loop *loop, ev_embed *w) EV_NOEXCEPT
 {
 	clear_pending (loop, (ev_watcher *)w);
 	if (unlikely (!ev_is_active (w)))
@@ -3869,7 +3875,7 @@ void ev_embed_stop (struct ev_loop *loop, ev_embed *w) EV_THROW
 #endif
 
 #if EV_FORK_ENABLE
-void ev_fork_start (struct ev_loop *loop, ev_fork *w) EV_THROW
+void ev_fork_start (struct ev_loop *loop, ev_fork *w) EV_NOEXCEPT
 {
 	if (unlikely (ev_is_active (w)))
 		return;
@@ -3883,7 +3889,7 @@ void ev_fork_start (struct ev_loop *loop, ev_fork *w) EV_THROW
 	EV_FREQUENT_CHECK;
 }
 
-void ev_fork_stop (struct ev_loop *loop, ev_fork *w) EV_THROW
+void ev_fork_stop (struct ev_loop *loop, ev_fork *w) EV_NOEXCEPT
 {
 	clear_pending (loop, (ev_watcher *)w);
 	if (unlikely (!ev_is_active (w)))
@@ -3905,7 +3911,7 @@ void ev_fork_stop (struct ev_loop *loop, ev_fork *w) EV_THROW
 #endif
 
 #if EV_CLEANUP_ENABLE
-void ev_cleanup_start (struct ev_loop *loop, ev_cleanup *w) EV_THROW
+void ev_cleanup_start (struct ev_loop *loop, ev_cleanup *w) EV_NOEXCEPT
 {
 	if (unlikely (ev_is_active (w)))
 		return;
@@ -3921,7 +3927,7 @@ void ev_cleanup_start (struct ev_loop *loop, ev_cleanup *w) EV_THROW
 	EV_FREQUENT_CHECK;
 }
 
-void ev_cleanup_stop (struct ev_loop *loop, ev_cleanup *w) EV_THROW
+void ev_cleanup_stop (struct ev_loop *loop, ev_cleanup *w) EV_NOEXCEPT
 {
 	clear_pending (loop, (ev_watcher *)w);
 	if (unlikely (!ev_is_active (w)))
@@ -3944,7 +3950,7 @@ void ev_cleanup_stop (struct ev_loop *loop, ev_cleanup *w) EV_THROW
 #endif
 
 #if EV_ASYNC_ENABLE
-void ev_async_start (struct ev_loop *loop, ev_async *w) EV_THROW
+void ev_async_start (struct ev_loop *loop, ev_async *w) EV_NOEXCEPT
 {
 	if (unlikely (ev_is_active (w)))
 		return;
@@ -3962,7 +3968,7 @@ void ev_async_start (struct ev_loop *loop, ev_async *w) EV_THROW
 	EV_FREQUENT_CHECK;
 }
 
-void ev_async_stop (struct ev_loop *loop, ev_async *w) EV_THROW
+void ev_async_stop (struct ev_loop *loop, ev_async *w) EV_NOEXCEPT
 {
 	clear_pending (loop, (ev_watcher *)w);
 	if (unlikely (!ev_is_active (w)))
@@ -3982,7 +3988,7 @@ void ev_async_stop (struct ev_loop *loop, ev_async *w) EV_THROW
 	EV_FREQUENT_CHECK;
 }
 
-void ev_async_send (struct ev_loop *loop, ev_async *w) EV_THROW
+void ev_async_send (struct ev_loop *loop, ev_async *w) EV_NOEXCEPT
 {
 	w->sent = 1;
 	evpipe_write (loop, &((loop)->async_pending));
@@ -4026,7 +4032,7 @@ static void once_cb_to (struct ev_loop *loop, ev_timer *w, int revents)
 }
 
 void ev_once (struct ev_loop *loop, int fd, int events, ev_tstamp timeout,
-	void (*cb)(int revents, void *arg), void *arg) EV_THROW
+	void (*cb)(int revents, void *arg), void *arg) EV_NOEXCEPT
 {
 	struct ev_once *once = (struct ev_once *)ev_malloc (sizeof (struct ev_once));
 
@@ -4055,7 +4061,7 @@ void ev_once (struct ev_loop *loop, int fd, int events, ev_tstamp timeout,
 /*****************************************************************************/
 
 #if EV_WALK_ENABLE
-void ev_walk (struct ev_loop *loop, int types, void (*cb)(struct ev_loop *loop, int type, void *w)) EV_THROW
+void ev_walk (struct ev_loop *loop, int types, void (*cb)(struct ev_loop *loop, int type, void *w)) EV_NOEXCEPT
 {
 	int i, j;
 	ev_watcher_list *wl, *wn;
