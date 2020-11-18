@@ -53,7 +53,6 @@
 #define iouring_cq_ring_size ((loop)->iouring_cq_ring_size)
 #define iouring_cq_tail ((loop)->iouring_cq_tail)
 #define iouring_entries ((loop)->iouring_entries)
-#define iouring_epoll_w ((loop)->iouring_epoll_w)
 #define iouring_fd ((loop)->iouring_fd)
 #define iouring_max_entries ((loop)->iouring_max_entries)
 #define iouring_sq_array ((loop)->iouring_sq_array)
@@ -124,6 +123,8 @@
 #define sigfd_w ((loop)->sigfd_w)
 #define timeout_blocktime ((loop)->timeout_blocktime)
 #define timercnt ((loop)->timercnt)
+#define timerfd ((loop)->timerfd)
+#define timerfd_w ((loop)->timerfd_w)
 #define timermax ((loop)->timermax)
 #define timers ((loop)->timers)
 #define userdata ((loop)->userdata)
@@ -187,7 +188,6 @@
 #undef iouring_cq_ring_size
 #undef iouring_cq_tail
 #undef iouring_entries
-#undef iouring_epoll_w
 #undef iouring_fd
 #undef iouring_max_entries
 #undef iouring_sq_array
@@ -258,6 +258,8 @@
 #undef sigfd_w
 #undef timeout_blocktime
 #undef timercnt
+#undef timerfd
+#undef timerfd_w
 #undef timermax
 #undef timers
 #undef userdata
